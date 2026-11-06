@@ -1,8 +1,11 @@
 import { Chess, type Move, type Square as ChessSquare } from "chess.js";
 import {
+  boardToFen,
   fileIndex,
+  findKing,
   getCheckers,
   getViewerBoard,
+  isSquareAttacked,
   opposite,
   parseFen,
   rankIndex,
@@ -345,13 +348,14 @@ export function pseudoTargets(
   state: GameState,
   from: Square,
   viewer: Color,
+  boardOverride?: BoardMap,
 ): Square[] {
   if (state.status !== "active") return [];
   const full = parseFen(state.fen);
   const piece = full[from];
   if (!piece || piece.color !== viewer) return [];
 
-  const { board } = getViewerBoard(state.fen, viewer);
+  const board = boardOverride ?? getViewerBoard(state.fen, viewer).board;
   const targets = new Set<Square>();
   const own = (square: Square) => board[square]?.color === viewer;
   const occupied = (square: Square) => board[square] !== null;
@@ -476,6 +480,109 @@ export function pseudoTargets(
   }
 
   return [...targets];
+}
+
+/**
+ * Fully legal destinations for the selected piece. Uses the authoritative
+ * position so pins, being in check, castling through check and en passant are
+ * all respected. Hidden pieces affect the list only through their occupancy,
+ * which the shadow layer already shows.
+ */
+export function legalTargets(
+  state: GameState,
+  from: Square,
+  viewer: Color,
+): Square[] {
+  if (state.status !== "active" || state.turn !== viewer) return [];
+  const piece = parseFen(state.fen)[from];
+  if (!piece || piece.color !== viewer) return [];
+
+  const chess = new Chess(state.fen);
+  try {
+    const moves = chess.moves({ square: from as ChessSquare, verbose: true });
+    return [...new Set(moves.map((move) => move.to as Square))];
+  } catch {
+    return [];
+  }
+}
+
+/** Simulates a candidate move on the real board and reports whether it leaves
+ * the mover's king attacked. */
+function moveLeavesKingExposed(
+  board: BoardMap,
+  piece: BoardPiece,
+  from: Square,
+  to: Square,
+  viewer: Color,
+): boolean {
+  const next: BoardMap = { ...board };
+  next[from] = null;
+
+  if (piece.type === "p" && from[0] !== to[0] && !board[to]) {
+    next[`${to[0]}${from[1]}`] = null;
+  }
+
+  if (piece.type === "k" && Math.abs(fileIndex(to) - fileIndex(from)) === 2) {
+    const rank = from[1];
+    if (to[0] === "g") {
+      next[`f${rank}`] = next[`h${rank}`];
+      next[`h${rank}`] = null;
+    } else if (to[0] === "c") {
+      next[`d${rank}`] = next[`a${rank}`];
+      next[`a${rank}`] = null;
+    }
+  }
+
+  next[to] = {
+    ...piece,
+    type:
+      piece.type === "p" && (to[1] === "8" || to[1] === "1")
+        ? "q"
+        : piece.type,
+  };
+
+  const kingSquare = piece.type === "k" ? to : findKing(next, viewer);
+  if (!kingSquare) return false;
+  return isSquareAttacked(boardToFen(next, viewer), kingSquare, opposite(viewer));
+}
+
+/**
+ * Movement-legal squares that are unavailable because the move would expose
+ * the viewer's own king. The UI marks these with a warning rather than showing
+ * them as ordinary destinations.
+ */
+export function kingSafetyTargets(
+  state: GameState,
+  from: Square,
+  viewer: Color,
+): Square[] {
+  if (state.status !== "active" || state.turn !== viewer) return [];
+  const full = parseFen(state.fen);
+  const piece = full[from];
+  if (!piece || piece.color !== viewer) return [];
+
+  const legal = new Set(legalTargets(state, from, viewer));
+  const candidates = pseudoTargets(state, from, viewer, full);
+  const enPassant = state.fen.split(" ")[3];
+  const dangerous: Square[] = [];
+
+  for (const to of candidates) {
+    if (legal.has(to)) continue;
+    if (
+      piece.type === "p" &&
+      from[0] !== to[0] &&
+      !full[to] &&
+      to !== enPassant
+    ) {
+      continue;
+    }
+    if (findBlocker(full, piece, from, to)) continue;
+    if (moveLeavesKingExposed(full, piece, from, to, viewer)) {
+      dangerous.push(to);
+    }
+  }
+
+  return dangerous;
 }
 
 /** Rebuilds move records from SAN, used when a guest hydrates a host snapshot. */

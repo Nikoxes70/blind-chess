@@ -54,6 +54,7 @@ export function GameView() {
   const room = useGameStore((state) => state.room);
   const selected = useGameStore((state) => state.selected);
   const targets = useGameStore((state) => state.targets);
+  const dangerTargets = useGameStore((state) => state.dangerTargets);
   const reveal = useGameStore((state) => state.reveal);
   const pendingPromotion = useGameStore((state) => state.pendingPromotion);
   const thinking = useGameStore((state) => state.thinking);
@@ -113,11 +114,24 @@ export function GameView() {
   const viewerBoard = getViewerBoard(game.fen, viewerColor, revealAll);
   const opponentColor = opposite(viewerColor);
   const isViewerTurn = game.turn === viewerColor;
-  const lastMove = game.history[game.history.length - 1];
-  const ownLastMove =
-    lastMove && lastMove.color === viewerColor
-      ? { from: lastMove.from, to: lastMove.to, ply: lastMove.ply }
-      : null;
+  const lastOwnMove = [...game.history]
+    .reverse()
+    .find((move) => move.color === viewerColor);
+  const lastOpponentMove = [...game.history]
+    .reverse()
+    .find((move) => move.color !== viewerColor);
+  const ownLastMove = lastOwnMove
+    ? { from: lastOwnMove.from, to: lastOwnMove.to, ply: lastOwnMove.ply }
+    : null;
+  const opponentLastMove = lastOpponentMove
+    ? {
+        from: lastOpponentMove.from,
+        to: lastOpponentMove.to,
+        ply: lastOpponentMove.ply,
+        isCheck: lastOpponentMove.isCheck,
+        isCheckmate: lastOpponentMove.isCheckmate,
+      }
+    : null;
 
   const yourCaptures = capturedBy(game.history, viewerColor);
   const theirCaptures = capturedBy(game.history, opponentColor);
@@ -209,7 +223,9 @@ export function GameView() {
               viewerColor={viewerColor}
               selected={selected}
               targets={targets}
+              dangerTargets={dangerTargets}
               lastMove={ownLastMove}
+              opponentLastMove={opponentLastMove}
               reveal={reveal}
               interactive={canPlay}
               revealAll={revealAll}
@@ -233,6 +249,10 @@ export function GameView() {
               Your pieces and any checking attackers are drawn in full. Other
               enemy pieces are only shadows; capturing one reveals it for a
               heartbeat.
+              <span className="mt-0.5 block">
+                Gold is your last move; blue is theirs. A red ! marks a move that
+                would leave your king in check.
+              </span>
             </p>
           </section>
 

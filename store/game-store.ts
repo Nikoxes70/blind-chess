@@ -9,8 +9,9 @@ import {
   createGame,
   elapsedForTurn,
   isPromotionAttempt,
+  kingSafetyTargets,
+  legalTargets,
   liveClockRemaining,
-  pseudoTargets,
   resignGame,
   timeoutGame,
   toWire,
@@ -64,6 +65,7 @@ export interface GameStore {
 
   selected: Square | null;
   targets: Square[];
+  dangerTargets: Square[];
   pendingPromotion: MoveInput | null;
   thinking: boolean;
   awaitingHost: boolean;
@@ -143,6 +145,7 @@ export const useGameStore = create<GameStore>()((set, get) => {
       game: next,
       selected: null,
       targets: [],
+      dangerTargets: [],
       pendingPromotion: null,
       awaitingHost: false,
       clockAnchor: {
@@ -176,6 +179,7 @@ export const useGameStore = create<GameStore>()((set, get) => {
 
     selected: null,
     targets: [],
+    dangerTargets: [],
     pendingPromotion: null,
     thinking: false,
     awaitingHost: false,
@@ -204,6 +208,7 @@ export const useGameStore = create<GameStore>()((set, get) => {
         timeControl,
         selected: null,
         targets: [],
+        dangerTargets: [],
         pendingPromotion: null,
         thinking: false,
         awaitingHost: false,
@@ -223,7 +228,13 @@ export const useGameStore = create<GameStore>()((set, get) => {
         current.room?.code === code &&
         current.room.role === role
       ) {
-        set({ selected: null, targets: [], pendingPromotion: null, awaitingHost: false });
+        set({
+          selected: null,
+          targets: [],
+          dangerTargets: [],
+          pendingPromotion: null,
+          awaitingHost: false,
+        });
         return;
       }
 
@@ -240,6 +251,7 @@ export const useGameStore = create<GameStore>()((set, get) => {
         timeControl,
         selected: null,
         targets: [],
+        dangerTargets: [],
         pendingPromotion: null,
         thinking: false,
         awaitingHost: false,
@@ -299,6 +311,7 @@ export const useGameStore = create<GameStore>()((set, get) => {
         pendingPromotion: null,
         selected: null,
         targets: [],
+        dangerTargets: [],
         revealBoard: false,
         clockAnchor: changed
           ? { gameId: next.id, ply: next.history.length, at: Date.now() }
@@ -348,13 +361,26 @@ export const useGameStore = create<GameStore>()((set, get) => {
     },
 
     selectSquare: (square) => {
-      const { game, viewerColor, selected, targets, awaitingHost, room, pendingPromotion } =
-        get();
+      const {
+        game,
+        viewerColor,
+        selected,
+        targets,
+        dangerTargets,
+        awaitingHost,
+        room,
+        pendingPromotion,
+      } = get();
       if (!game || game.status !== "active" || pendingPromotion) return;
       if (game.turn !== viewerColor) return;
       if (awaitingHost) return;
       if (room && !room.opponentPresent) {
         pushError("Waiting for your opponent to join.");
+        return;
+      }
+
+      if (selected && dangerTargets.includes(square)) {
+        pushError("That move would leave your king in check.");
         return;
       }
 
@@ -367,17 +393,18 @@ export const useGameStore = create<GameStore>()((set, get) => {
       if (piece && piece.color === viewerColor) {
         set({
           selected: square,
-          targets: pseudoTargets(game, square, viewerColor),
+          targets: legalTargets(game, square, viewerColor),
+          dangerTargets: kingSafetyTargets(game, square, viewerColor),
         });
         if (get().soundEnabled) getSoundEngine().play("select");
         return;
       }
 
-      set({ selected: null, targets: [] });
+      set({ selected: null, targets: [], dangerTargets: [] });
     },
 
     clearSelection: () => {
-      set({ selected: null, targets: [] });
+      set({ selected: null, targets: [], dangerTargets: [] });
     },
 
     submitMove: (input) => {
@@ -388,6 +415,11 @@ export const useGameStore = create<GameStore>()((set, get) => {
 
       if (room && !room.opponentPresent) {
         pushError("Waiting for your opponent to join.");
+        return;
+      }
+
+      if (kingSafetyTargets(game, input.from, viewerColor).includes(input.to)) {
+        pushError("That move would leave your king in check.");
         return;
       }
 
@@ -411,6 +443,7 @@ export const useGameStore = create<GameStore>()((set, get) => {
         set({
           selected: null,
           targets: [],
+          dangerTargets: [],
           pendingPromotion: null,
           awaitingHost: true,
         });
@@ -480,6 +513,7 @@ export const useGameStore = create<GameStore>()((set, get) => {
         game,
         selected: null,
         targets: [],
+        dangerTargets: [],
         pendingPromotion: null,
         thinking: false,
         awaitingHost: false,
@@ -586,6 +620,7 @@ export const useGameStore = create<GameStore>()((set, get) => {
         roomClient: null,
         selected: null,
         targets: [],
+        dangerTargets: [],
         pendingPromotion: null,
         thinking: false,
         awaitingHost: false,

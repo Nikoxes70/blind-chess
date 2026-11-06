@@ -83,7 +83,8 @@ export function MoveLog({ history, viewerColor }: MoveLogProps) {
             <TooltipContent>
               Your moves are written out. Their moves stay hidden as{" "}
               <span className="font-mono">???</span> unless they capture or give
-              check — in which case only the piece type is revealed.
+              check — in which case only the piece type is revealed. Their latest
+              move is marked on the board.
             </TooltipContent>
           </Tooltip>
         }
@@ -132,7 +133,8 @@ export function MoveLog({ history, viewerColor }: MoveLogProps) {
       <div className="border-t border-border/60 px-3 py-2">
         <p className="text-[10px] leading-relaxed text-muted-foreground/60">
           <span className="font-mono text-muted-foreground/80">???</span> is a
-          hidden move. Captures and checks give up the piece type — nothing more.
+          hidden move. Their latest move is marked on the board; captures and
+          checks give up the piece type — nothing more.
         </p>
       </div>
     </Panel>

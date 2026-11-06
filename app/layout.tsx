@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Toaster } from "sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import "./globals.css";
+import "./move-indicators.css";
 
 export const metadata: Metadata = {
   title: "Blind Chess — you only see your own pieces",

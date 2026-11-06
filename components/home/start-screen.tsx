@@ -214,7 +214,9 @@ export function StartScreen() {
               viewerColor="w"
               selected={null}
               targets={[]}
+              dangerTargets={[]}
               lastMove={null}
+              opponentLastMove={null}
               reveal={null}
               interactive={false}
               onSelect={() => {}}

@@ -1,28 +1,29 @@
-import type { Color, PromotionPiece, WireGameState } from "@/lib/chess/types";
+import type {
+  Color,
+  PromotionPiece,
+  Square,
+  WireGameState,
+} from "@/lib/chess/types";
 
 export type RoomRole = "host" | "guest";
+
+export type TransportKind = "local" | "pusher";
+
+export type ConnectionStatus =
+  | "connecting"
+  | "connected"
+  | "reconnecting"
+  | "error";
 
 export interface PeerInfo {
   id: string;
   role: RoomRole;
 }
 
-export type ConnectionStatus =
-  | "idle"
-  | "connecting"
-  | "connected"
-  | "reconnecting"
-  | "error";
-
 export type RoomEventPayload =
   | { type: "hello" }
-  | { type: "state"; state: WireGameState; to?: string }
-  | {
-      type: "move";
-      from: string;
-      to: string;
-      promotion?: PromotionPiece;
-    }
+  | { type: "state"; state: WireGameState }
+  | { type: "move"; from: Square; to: Square; promotion?: PromotionPiece }
   | { type: "reject"; targetId: string; message: string }
   | { type: "resign"; color: Color }
   | { type: "flag"; color: Color }
@@ -36,8 +37,6 @@ export interface TransportHandlers {
   onPeerLeave: (peerId: string) => void;
   onStatus: (status: ConnectionStatus) => void;
 }
-
-export type TransportKind = "local" | "pusher";
 
 export interface Transport {
   readonly kind: TransportKind;

@@ -19,8 +19,17 @@ interface ChessBoardProps {
   viewerColor: Color;
   selected: Square | null;
   targets: Square[];
-  /** Only ever the viewer's own last move — opponent moves must stay hidden. */
+  dangerTargets: Square[];
+  /** The viewer's own last move, drawn in gold. */
   lastMove: { from: Square; to: Square; ply: number } | null;
+  /** The opponent's last move; its squares are marked without revealing the piece. */
+  opponentLastMove: {
+    from: Square;
+    to: Square;
+    ply: number;
+    isCheck: boolean;
+    isCheckmate: boolean;
+  } | null;
   reveal: CapturedReveal | null;
   interactive: boolean;
   revealAll?: boolean;
@@ -61,7 +70,9 @@ export function ChessBoard({
   viewerColor,
   selected,
   targets,
+  dangerTargets,
   lastMove,
+  opponentLastMove,
   reveal,
   interactive,
   revealAll = false,
@@ -89,6 +100,7 @@ export function ChessBoard({
   }, [orientation]);
 
   const targetSet = useMemo(() => new Set(targets), [targets]);
+  const dangerSet = useMemo(() => new Set(dangerTargets), [dangerTargets]);
   const checkerSet = useMemo(
     () => new Set(viewerBoard.checkers),
     [viewerBoard.checkers],
@@ -178,30 +190,39 @@ export function ChessBoard({
             const isLight = isLightSquare(square);
             const isSelected = selected === square;
             const isTarget = targetSet.has(square);
-            const isCaptureTarget = isTarget && Boolean(piece);
+            const isDangerTarget = dangerSet.has(square);
+            const isCaptureTarget =
+              isTarget && (Boolean(piece) || isHiddenPiece);
             const isLast =
               lastMove !== null &&
               (lastMove.from === square || lastMove.to === square);
+            const isTheirLast =
+              opponentLastMove !== null &&
+              (opponentLastMove.from === square ||
+                opponentLastMove.to === square);
+            const isTheirLastTo = opponentLastMove?.to === square;
             const isCheck = viewerBoard.inCheck && viewerBoard.king === square;
             const isHover = hover === square && drag !== null;
-            const isDanger = Boolean(piece && checkerSet.has(square));
+            const isChecker = Boolean(piece && checkerSet.has(square));
             const showFile = row === 7;
             const showRank = column === 0;
+            const baseLabel = piece
+              ? `${piece.color === "w" ? "White" : "Black"} ${
+                  PIECE_NAMES[piece.type]
+                } on ${square}`
+              : isHiddenPiece
+                ? `Hidden enemy piece on ${square}`
+                : `Empty square ${square}`;
+            const ariaLabel = `${baseLabel}${
+              isDangerTarget ? " — moving here would expose your king" : ""
+            }${isTheirLast ? " — opponent's last move" : ""}`;
 
             return (
               <div
                 key={square}
                 data-square={square}
                 role="gridcell"
-                aria-label={
-                  piece
-                    ? `${piece.color === "w" ? "White" : "Black"} ${
-                        PIECE_NAMES[piece.type]
-                      } on ${square}`
-                    : isHiddenPiece
-                      ? `Hidden enemy piece on ${square}`
-                      : `Empty square ${square}`
-                }
+                aria-label={ariaLabel}
                 className={cn(
                   "relative flex items-center justify-center",
                   isLight ? "sq-light" : "sq-dark",
@@ -221,6 +242,34 @@ export function ChessBoard({
                   <div className="absolute inset-0 bg-primary/[0.15]" />
                 ) : null}
 
+                {isTheirLast ? (
+                  <div
+                    className={cn(
+                      "absolute inset-0",
+                      isTheirLastTo && opponentLastMove?.isCheckmate
+                        ? "last-move-opponent-mate"
+                        : isTheirLastTo && opponentLastMove?.isCheck
+                          ? "last-move-opponent-check"
+                          : "last-move-opponent",
+                      isTheirLastTo &&
+                        !opponentLastMove?.isCheck &&
+                        !opponentLastMove?.isCheckmate &&
+                        "last-move-opponent-to",
+                    )}
+                  />
+                ) : null}
+
+                {opponentLastMove?.from === square ? (
+                  <span className="last-move-origin" aria-hidden />
+                ) : null}
+
+                {isTheirLastTo &&
+                (opponentLastMove?.isCheck || opponentLastMove?.isCheckmate) ? (
+                  <span className="last-move-alert" aria-hidden>
+                    {opponentLastMove?.isCheckmate ? "#" : "!"}
+                  </span>
+                ) : null}
+
                 {isSelected ? (
                   <div className="absolute inset-0 bg-primary/[0.2] shadow-[inset_0_0_0_2px_rgba(227,195,141,0.9)]" />
                 ) : null}
@@ -231,6 +280,12 @@ export function ChessBoard({
 
                 {isCheck ? (
                   <div className="check-square absolute inset-0" />
+                ) : null}
+
+                {isDangerTarget ? (
+                  <div className="danger-target" aria-hidden>
+                    <span className="danger-target-mark">!</span>
+                  </div>
                 ) : null}
 
                 {isTarget && !isCaptureTarget ? (
@@ -256,7 +311,7 @@ export function ChessBoard({
                       }
                       type={piece.type}
                       color={piece.color}
-                      danger={isDanger}
+                      danger={isChecker}
                       className={cn(
                         "board-piece",
                         lastMove?.to === square && "animate-settle",

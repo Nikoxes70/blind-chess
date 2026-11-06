@@ -55,7 +55,9 @@ export function WaitingRoom({
             viewerColor={role === "guest" ? "b" : "w"}
             selected={null}
             targets={[]}
+            dangerTargets={[]}
             lastMove={null}
+            opponentLastMove={null}
             reveal={null}
             interactive={false}
             onSelect={() => {}}
