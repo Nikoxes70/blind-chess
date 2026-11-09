@@ -2070,27 +2070,6 @@
 .animate-settle {
   animation: piece-settle 240ms cubic-bezier(0.22, 1, 0.36, 1);
 }
-@keyframes capture-reveal {
-  0% {
-    opacity: 0;
-    transform: scale(0.45) rotate(-10deg);
-  }
-  22% {
-    opacity: 1;
-    transform: scale(1.16) rotate(2deg);
-  }
-  64% {
-    opacity: 1;
-    transform: scale(1) rotate(0deg);
-  }
-  100% {
-    opacity: 0;
-    transform: scale(0.92) translateY(-10px);
-  }
-}
-.animate-capture-reveal {
-  animation: capture-reveal 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-}
 @keyframes mist-drift {
   0% {
     transform: translate3d(-1.5%, -1%, 0) scale(1.02);

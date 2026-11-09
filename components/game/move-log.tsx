@@ -2,9 +2,12 @@
 
 import { useEffect, useRef } from "react";
 import { EyeOff, ScrollText } from "lucide-react";
+import { opposite } from "@/lib/chess/board";
+import { PIECE_NAMES } from "@/lib/chess/config";
 import { displayMove, movePairs } from "@/lib/chess/notation";
 import type { Color, MoveRecord } from "@/lib/chess/types";
 import { cn } from "@/lib/utils";
+import { PieceGlyph } from "@/components/board/piece-glyph";
 import { Panel, PanelHeader } from "@/components/ui/panel";
 import {
   Tooltip,
@@ -31,24 +34,38 @@ function MoveCell({
   }
 
   const display = displayMove(move, viewer);
+  const capturedName = move.captured ? PIECE_NAMES[move.captured] : null;
+  const title = display.masked
+    ? `Hidden move${capturedName ? ` — captured ${capturedName.toLowerCase()}` : ""}`
+    : `${move.color === "w" ? "White" : "Black"} ${move.san}${
+        capturedName ? ` — captured ${capturedName.toLowerCase()}` : ""
+      }`;
 
   return (
     <span
       className={cn(
-        "truncate rounded px-1.5 py-1 font-mono text-[12px] leading-none",
+        "flex min-w-0 items-center gap-1 rounded px-1.5 py-1 font-mono text-[12px] leading-none",
         display.masked
           ? "italic text-muted-foreground/70"
           : "text-foreground/90",
         display.check && "text-destructive/90",
         latest && "bg-primary/[0.09] text-primary",
       )}
-      title={
-        display.masked
-          ? "Hidden move"
-          : `${move.color === "w" ? "White" : "Black"} ${move.san}`
-      }
+      title={title}
     >
-      {display.text}
+      <span className="truncate">{display.text}</span>
+      {move.captured ? (
+        <span
+          className="flex shrink-0 items-center text-muted-foreground/80"
+          aria-label={`Captured ${capturedName}`}
+        >
+          <PieceGlyph
+            type={move.captured}
+            color={opposite(move.color)}
+            className="text-[11px] leading-none"
+          />
+        </span>
+      ) : null}
     </span>
   );
 }
@@ -82,9 +99,9 @@ export function MoveLog({ history, viewerColor }: MoveLogProps) {
             </TooltipTrigger>
             <TooltipContent>
               Your moves are written out. Their moves stay hidden as{" "}
-              <span className="font-mono">???</span> unless they capture or give
-              check — in which case only the piece type is revealed. Their latest
-              move is marked on the board.
+              <span className="font-mono">???</span> unless they give check — then
+              the attacking piece is revealed. A capture identifies only the
+              captured piece. Their latest move is marked on the board.
             </TooltipContent>
           </Tooltip>
         }
@@ -133,8 +150,8 @@ export function MoveLog({ history, viewerColor }: MoveLogProps) {
       <div className="border-t border-border/60 px-3 py-2">
         <p className="text-[10px] leading-relaxed text-muted-foreground/60">
           <span className="font-mono text-muted-foreground/80">???</span> is a
-          hidden move. Their latest move is marked on the board; captures and
-          checks give up the piece type — nothing more.
+          hidden move. Their latest move is marked on the board; a check reveals
+          the attacker, and a capture reveals only what was taken.
         </p>
       </div>
     </Panel>

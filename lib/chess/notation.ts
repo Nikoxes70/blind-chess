@@ -9,8 +9,9 @@ export interface MoveDisplay {
 }
 
 /**
- * Masks an opponent move as `???` unless it captured or gave check — then only
- * the piece type (and capture/check marker) is revealed.
+ * Masks an opponent move as `???` unless it gave check. A checking move reveals
+ * the attacking piece type only; a capture never reveals the capturing piece,
+ * because the captured piece identity is surfaced separately in the move log.
  */
 export function displayMove(move: MoveRecord, viewer: Color): MoveDisplay {
   if (move.color === viewer) {
@@ -23,7 +24,7 @@ export function displayMove(move: MoveRecord, viewer: Color): MoveDisplay {
     };
   }
 
-  const revealed = Boolean(move.captured) || move.isCheck || move.isCheckmate;
+  const revealed = Boolean(move.isCheck || move.isCheckmate);
   if (!revealed) {
     return { text: "???", masked: true, revealed: false, check: false, mate: false };
   }

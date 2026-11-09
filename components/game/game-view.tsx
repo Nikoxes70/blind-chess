@@ -55,7 +55,6 @@ export function GameView() {
   const selected = useGameStore((state) => state.selected);
   const targets = useGameStore((state) => state.targets);
   const dangerTargets = useGameStore((state) => state.dangerTargets);
-  const reveal = useGameStore((state) => state.reveal);
   const pendingPromotion = useGameStore((state) => state.pendingPromotion);
   const thinking = useGameStore((state) => state.thinking);
   const awaitingHost = useGameStore((state) => state.awaitingHost);
@@ -226,7 +225,6 @@ export function GameView() {
               dangerTargets={dangerTargets}
               lastMove={ownLastMove}
               opponentLastMove={opponentLastMove}
-              reveal={reveal}
               interactive={canPlay}
               revealAll={revealAll}
               onSelect={selectSquare}
@@ -246,9 +244,9 @@ export function GameView() {
             />
 
             <p className="px-1 text-[10px] leading-relaxed text-muted-foreground/50">
-              Your pieces and any checking attackers are drawn in full. Other
-              enemy pieces are only shadows; capturing one reveals it for a
-              heartbeat.
+              Your pieces and any active checking attackers are drawn in full.
+              Other enemy pieces are anonymous shadows; a capture identifies
+              the taken piece in the log and captured tracker.
               <span className="mt-0.5 block">
                 Gold is your last move; blue is theirs. A red ! marks a move that
                 would leave your king in check.

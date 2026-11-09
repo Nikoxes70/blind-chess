@@ -58,7 +58,6 @@ export function WaitingRoom({
             dangerTargets={[]}
             lastMove={null}
             opponentLastMove={null}
-            reveal={null}
             interactive={false}
             onSelect={() => {}}
             onMove={() => {}}

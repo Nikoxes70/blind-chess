@@ -7,7 +7,7 @@ import "./move-indicators.css";
 export const metadata: Metadata = {
   title: "Blind Chess — you only see your own pieces",
   description:
-    "A fog-of-war chess game. Your opponent's army is invisible until it gives check. Play the engine or invite a friend with a six-character room code.",
+    "A fog-of-war chess game. Your opponent's army moves as anonymous shadows; only a checking piece reveals its identity. Play the engine or invite a friend with a six-character room code.",
   applicationName: "Blind Chess",
   keywords: ["chess", "blind chess", "fog of war", "multiplayer", "strategy"],
 };

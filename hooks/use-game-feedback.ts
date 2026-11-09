@@ -6,18 +6,15 @@ import { getSoundEngine } from "@/lib/audio/sounds";
 import { useGameStore } from "@/store/game-store";
 
 /**
- * Plays move/capture/check cues, reveals a captured hidden piece for a moment,
- * and surfaces engine rejections as toasts.
+ * Plays move/capture/check cues and surfaces engine rejections as toasts.
+ * Piece identities are never revealed on the board by a capture; the move log
+ * and captured tracker are the only places a captured piece is identified.
  */
 export function useGameFeedback() {
   const game = useGameStore((state) => state.game);
-  const viewerColor = useGameStore((state) => state.viewerColor);
   const soundEnabled = useGameStore((state) => state.soundEnabled);
   const error = useGameStore((state) => state.error);
-  const reveal = useGameStore((state) => state.reveal);
   const clearError = useGameStore((state) => state.clearError);
-  const setReveal = useGameStore((state) => state.setReveal);
-  const clearReveal = useGameStore((state) => state.clearReveal);
 
   const lastGameId = useRef<string | null>(null);
   const lastPly = useRef(0);
@@ -49,15 +46,6 @@ export function useGameFeedback() {
       else if (move.isCheck) engine.play("check");
       else if (move.captured) engine.play("capture");
       else engine.play("move");
-
-      if (move.color === viewerColor && move.captured && move.capturedSquare) {
-        setReveal({
-          square: move.capturedSquare,
-          piece: move.captured,
-          color: move.color === "w" ? "b" : "w",
-        });
-        engine.play("reveal");
-      }
       return;
     }
 
@@ -65,13 +53,7 @@ export function useGameFeedback() {
       lastStatus.current = game.status;
       if (game.status !== "active") engine.play("end");
     }
-  }, [game, viewerColor, setReveal]);
-
-  useEffect(() => {
-    if (!reveal) return;
-    const timer = window.setTimeout(() => clearReveal(reveal.id), 1200);
-    return () => window.clearTimeout(timer);
-  }, [reveal, clearReveal]);
+  }, [game]);
 
   useEffect(() => {
     if (!error) return;

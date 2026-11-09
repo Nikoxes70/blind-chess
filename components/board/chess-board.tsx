@@ -9,7 +9,6 @@ import {
 } from "@/lib/chess/board";
 import { PIECE_NAMES } from "@/lib/chess/config";
 import type { BoardPiece, Color, Square } from "@/lib/chess/types";
-import type { CapturedReveal } from "@/store/game-store";
 import { cn } from "@/lib/utils";
 import { PieceGlyph } from "./piece-glyph";
 
@@ -30,7 +29,6 @@ interface ChessBoardProps {
     isCheck: boolean;
     isCheckmate: boolean;
   } | null;
-  reveal: CapturedReveal | null;
   interactive: boolean;
   revealAll?: boolean;
   onSelect: (square: Square) => void;
@@ -73,7 +71,6 @@ export function ChessBoard({
   dangerTargets,
   lastMove,
   opponentLastMove,
-  reveal,
   interactive,
   revealAll = false,
   onSelect,
@@ -316,16 +313,6 @@ export function ChessBoard({
                         "board-piece",
                         lastMove?.to === square && "animate-settle",
                       )}
-                    />
-                  </div>
-                ) : null}
-
-                {reveal && reveal.square === square ? (
-                  <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center">
-                    <PieceGlyph
-                      type={reveal.piece}
-                      color={reveal.color}
-                      className="board-piece animate-capture-reveal drop-shadow-[0_0_12px_rgba(227,195,141,0.45)]"
                     />
                   </div>
                 ) : null}

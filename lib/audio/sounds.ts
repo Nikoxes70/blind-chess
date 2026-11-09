@@ -5,7 +5,6 @@ export type SoundName =
   | "checkmate"
   | "illegal"
   | "select"
-  | "reveal"
   | "start"
   | "end";
 
@@ -57,10 +56,6 @@ class SoundEngine {
         break;
       case "select":
         this.tone(context, start, 540, 540, 0.035, 0.018, "sine");
-        break;
-      case "reveal":
-        this.tone(context, start, 1046, 1568, 0.2, 0.032, "triangle");
-        this.tone(context, start + 0.04, 1568, 2093, 0.16, 0.018, "sine");
         break;
       case "start":
         this.tone(context, start, 392, 392, 0.16, 0.035, "sine");

@@ -25,7 +25,6 @@ import type {
   GameMode,
   GameState,
   MoveInput,
-  PieceSymbol,
   PromotionPiece,
   Square,
   TimeControlKey,
@@ -41,13 +40,6 @@ export interface RoomSession {
   opponentPresent: boolean;
   opponentId: string | null;
   transport: TransportKind;
-}
-
-export interface CapturedReveal {
-  id: number;
-  square: Square;
-  piece: PieceSymbol;
-  color: Color;
 }
 
 interface GameError {
@@ -75,7 +67,6 @@ export interface GameStore {
   room: RoomSession | null;
   roomClient: RoomClient | null;
   clockAnchor: ClockAnchor | null;
-  reveal: CapturedReveal | null;
   error: GameError | null;
 
   startAiGame: (options?: {
@@ -121,14 +112,11 @@ export interface GameStore {
 
   pushError: (message: string) => void;
   clearError: (id?: number) => void;
-  setReveal: (reveal: Omit<CapturedReveal, "id">) => void;
-  clearReveal: (id: number) => void;
   leaveGame: () => void;
 }
 
 let errorSequence = 0;
 let lastError = { message: "", at: 0 };
-let revealSequence = 0;
 
 function readSoundPreference(): boolean {
   if (typeof window === "undefined") return true;
@@ -189,7 +177,6 @@ export const useGameStore = create<GameStore>()((set, get) => {
     room: null,
     roomClient: null,
     clockAnchor: null,
-    reveal: null,
     error: null,
 
     startAiGame: (options) => {
@@ -213,7 +200,6 @@ export const useGameStore = create<GameStore>()((set, get) => {
         thinking: false,
         awaitingHost: false,
         revealBoard: false,
-        reveal: null,
         error: null,
         room: null,
         roomClient: null,
@@ -256,7 +242,6 @@ export const useGameStore = create<GameStore>()((set, get) => {
         thinking: false,
         awaitingHost: false,
         revealBoard: false,
-        reveal: null,
         error: null,
         room: {
           code,
@@ -518,7 +503,6 @@ export const useGameStore = create<GameStore>()((set, get) => {
         thinking: false,
         awaitingHost: false,
         revealBoard: false,
-        reveal: null,
         clockAnchor: { gameId: game.id, ply: 0, at: Date.now() },
       });
       if (room?.role === "host" && roomClient) {
@@ -603,14 +587,6 @@ export const useGameStore = create<GameStore>()((set, get) => {
       set({ error: null });
     },
 
-    setReveal: (reveal) => {
-      set({ reveal: { ...reveal, id: ++revealSequence } });
-    },
-
-    clearReveal: (id) => {
-      if (get().reveal?.id === id) set({ reveal: null });
-    },
-
     leaveGame: () => {
       get().roomClient?.destroy();
       set({
@@ -626,7 +602,6 @@ export const useGameStore = create<GameStore>()((set, get) => {
         awaitingHost: false,
         revealBoard: false,
         clockAnchor: null,
-        reveal: null,
         error: null,
         orientation: "w",
         viewerColor: "w",

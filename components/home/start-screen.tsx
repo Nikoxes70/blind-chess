@@ -30,7 +30,7 @@ const RULES = [
   {
     icon: EyeOff,
     title: "Only your army",
-    body: "Half the board is invisible by design. The empty squares are not empty — they are unobserved.",
+    body: "Your pieces stand in full detail. Their army is a field of identical shadows: you always know where they are, never what they are.",
   },
   {
     icon: Radar,
@@ -40,7 +40,7 @@ const RULES = [
   {
     icon: Brain,
     title: "A memory game at heart",
-    body: "Their moves read as ???. Captures and checks reveal a piece type and nothing else. Reconstruct the rest.",
+    body: "Their moves read as ???. A check reveals the attacker; a capture reveals only what was taken. Reconstruct the rest.",
   },
 ] as const;
 
@@ -98,9 +98,9 @@ export function StartScreen() {
           </h1>
 
           <p className="text-balance mt-5 max-w-xl text-[15px] leading-relaxed text-muted-foreground">
-            Your opponent&apos;s pieces are invisible until one of them gives
-            check. Read the masked log, count the captures, and hunt a king you
-            cannot see.
+            Your opponent&apos;s pieces are anonymous shadows. You can see where
+            they stand, never what they are — until one of them gives check.
+            Read the board, count the captures, and hunt a king you cannot name.
           </p>
 
           <div className="mt-8 rounded-xl border border-border/80 bg-card/70 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] backdrop-blur-sm">
@@ -217,7 +217,6 @@ export function StartScreen() {
               dangerTargets={[]}
               lastMove={null}
               opponentLastMove={null}
-              reveal={null}
               interactive={false}
               onSelect={() => {}}
               onMove={() => {}}
