@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import { EyeOff, ScrollText } from "lucide-react";
 import { opposite } from "@/lib/chess/board";
-import { PIECE_NAMES } from "@/lib/chess/config";
+import { PIECE_NAME_KEYS } from "@/lib/chess/config";
 import { displayMove, movePairs } from "@/lib/chess/notation";
 import type { Color, MoveRecord } from "@/lib/chess/types";
 import { cn } from "@/lib/utils";
@@ -14,6 +14,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useI18n } from "@/components/i18n-provider";
 
 interface MoveLogProps {
   history: MoveRecord[];
@@ -29,17 +30,26 @@ function MoveCell({
   viewer: Color;
   latest: boolean;
 }) {
+  const { t } = useI18n();
+
   if (!move) {
     return <span className="px-1.5 py-1 text-[12px] text-muted-foreground/25">·</span>;
   }
 
   const display = displayMove(move, viewer);
-  const capturedName = move.captured ? PIECE_NAMES[move.captured] : null;
+  const capturedName = move.captured
+    ? t(PIECE_NAME_KEYS[move.captured])
+    : null;
+  const capturedSuffix = capturedName
+    ? t("moveLog.capturedSuffix", { piece: capturedName })
+    : "";
   const title = display.masked
-    ? `Hidden move${capturedName ? ` — captured ${capturedName.toLowerCase()}` : ""}`
-    : `${move.color === "w" ? "White" : "Black"} ${move.san}${
-        capturedName ? ` — captured ${capturedName.toLowerCase()}` : ""
-      }`;
+    ? `${t("moveLog.hiddenMove")}${capturedSuffix}`
+    : t("moveLog.moveTitle", {
+        color: t(move.color === "w" ? "common.white" : "common.black"),
+        san: move.san,
+        captured: capturedSuffix,
+      });
 
   return (
     <span
@@ -57,7 +67,9 @@ function MoveCell({
       {move.captured ? (
         <span
           className="flex shrink-0 items-center text-muted-foreground/80"
-          aria-label={`Captured ${capturedName}`}
+          aria-label={t("moveLog.capturedAria", {
+            piece: capturedName ?? "",
+          })}
         >
           <PieceGlyph
             type={move.captured}
@@ -71,6 +83,7 @@ function MoveCell({
 }
 
 export function MoveLog({ history, viewerColor }: MoveLogProps) {
+  const { t } = useI18n();
   const scrollRef = useRef<HTMLDivElement>(null);
   const pairs = movePairs(history);
 
@@ -83,25 +96,22 @@ export function MoveLog({ history, viewerColor }: MoveLogProps) {
   return (
     <Panel>
       <PanelHeader
-        title="Memory log"
+        title={t("moveLog.title")}
         icon={<ScrollText className="size-3.5" />}
-        hint={`${history.length} plies`}
+        hint={t("moveLog.hint", { count: history.length })}
         action={
           <Tooltip>
             <TooltipTrigger asChild>
               <button
                 type="button"
                 className="rounded p-1 text-muted-foreground/60 transition-colors hover:text-foreground"
-                aria-label="How the move log works"
+                aria-label={t("moveLog.howAria")}
               >
                 <EyeOff className="size-3.5" />
               </button>
             </TooltipTrigger>
             <TooltipContent>
-              Your moves are written out. Their moves stay hidden as{" "}
-              <span className="font-mono">???</span> unless they give check — then
-              the attacking piece is revealed. A capture identifies only the
-              captured piece. Their latest move is marked on the board.
+              {t("moveLog.tooltip")}
             </TooltipContent>
           </Tooltip>
         }
@@ -115,9 +125,9 @@ export function MoveLog({ history, viewerColor }: MoveLogProps) {
           <div className="flex h-[104px] flex-col items-center justify-center gap-1.5 px-4 text-center">
             <EyeOff className="size-4 text-muted-foreground/35" />
             <p className="text-[11px] leading-relaxed text-muted-foreground/60">
-              No moves yet.
+              {t("moveLog.noMoves")}
               <br />
-              The fog is intact.
+              {t("moveLog.fogIntact")}
             </p>
           </div>
         ) : (
@@ -149,9 +159,10 @@ export function MoveLog({ history, viewerColor }: MoveLogProps) {
 
       <div className="border-t border-border/60 px-3 py-2">
         <p className="text-[10px] leading-relaxed text-muted-foreground/60">
-          <span className="font-mono text-muted-foreground/80">???</span> is a
-          hidden move. Their latest move is marked on the board; a check reveals
-          the attacker, and a capture reveals only what was taken.
+          <span className="font-mono text-muted-foreground/80">
+            {t("moveLog.footerPrefix")}
+          </span>
+          {t("moveLog.footerBody")}
         </p>
       </div>
     </Panel>

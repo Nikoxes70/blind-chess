@@ -7,6 +7,7 @@ import type { Color } from "@/lib/chess/types";
 import { cn } from "@/lib/utils";
 import { PieceGlyph } from "@/components/board/piece-glyph";
 import { Panel, PanelHeader } from "@/components/ui/panel";
+import { useI18n } from "@/components/i18n-provider";
 
 interface CapturedPanelProps {
   viewerColor: Color;
@@ -26,16 +27,19 @@ function CaptureRow({
   color: Color;
   advantage: number;
 }) {
+  const { t } = useI18n();
   const total = pieces.reduce((sum, piece) => sum + piece.count, 0);
 
   return (
     <div className="flex items-center gap-3 px-4 py-2.5">
-      <span className="w-[68px] shrink-0 text-[10px] uppercase tracking-[0.12em] text-muted-foreground/60">
+      <span className="w-[76px] shrink-0 text-[10px] leading-tight uppercase tracking-[0.12em] text-muted-foreground/60">
         {label}
       </span>
       <div className="flex min-h-6 flex-1 flex-wrap items-center gap-0.5">
         {total === 0 ? (
-          <span className="text-[11px] text-muted-foreground/35">Nothing yet</span>
+          <span className="text-[11px] text-muted-foreground/35">
+            {t("captured.nothingYet")}
+          </span>
         ) : (
           pieces.map((piece) =>
             Array.from({ length: piece.count }).map((_, index) => (
@@ -67,22 +71,24 @@ export function CapturedPanel({
   theirCaptures,
   materialDiff,
 }: CapturedPanelProps) {
+  const { t } = useI18n();
+
   return (
     <Panel>
       <PanelHeader
-        title="Captured"
+        title={t("captured.title")}
         icon={<Skull className="size-3.5" />}
-        hint="deduce what is left"
+        hint={t("captured.hint")}
       />
       <div className="divide-y divide-border/50">
         <CaptureRow
-          label="You took"
+          label={t("captured.youTook")}
           pieces={yourCaptures}
           color={opposite(viewerColor)}
           advantage={materialDiff > 0 ? materialDiff : 0}
         />
         <CaptureRow
-          label="They took"
+          label={t("captured.theyTook")}
           pieces={theirCaptures}
           color={viewerColor}
           advantage={materialDiff < 0 ? -materialDiff : 0}
@@ -93,7 +99,7 @@ export function CapturedPanel({
           "border-t border-border/60 px-4 py-2 text-[10px] leading-relaxed text-muted-foreground/55",
         )}
       >
-        Every capture is public. Use the totals to count the pieces still hidden.
+        {t("captured.footer")}
       </div>
     </Panel>
   );

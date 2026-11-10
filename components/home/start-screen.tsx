@@ -15,10 +15,12 @@ import {
 import { DEFAULT_TIME_CONTROL, DIFFICULTY_META } from "@/lib/chess/config";
 import type { Difficulty, TimeControlKey } from "@/lib/chess/types";
 import { useGameStore } from "@/store/game-store";
+import { useI18n } from "@/components/i18n-provider";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
 import { Brand } from "@/components/brand";
+import { LanguageSwitcher } from "@/components/language-switcher";
 import { ChessBoard } from "@/components/board/chess-board";
 import { TimeControlPicker } from "@/components/game/time-control-picker";
 import { RoomManager } from "@/components/room/room-manager";
@@ -26,26 +28,9 @@ import { RoomManager } from "@/components/room/room-manager";
 const START_FEN =
   "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
-const RULES = [
-  {
-    icon: EyeOff,
-    title: "Only your army",
-    body: "Your pieces stand in full detail. Their army is a field of identical shadows: you always know where they are, never what they are.",
-  },
-  {
-    icon: Radar,
-    title: "Check turns on the lights",
-    body: "The moment a hidden piece gives check, it appears. Resolve the check and it slips back into the fog.",
-  },
-  {
-    icon: Brain,
-    title: "A memory game at heart",
-    body: "Their moves read as ???. A check reveals the attacker; a capture reveals only what was taken. Reconstruct the rest.",
-  },
-] as const;
-
 export function StartScreen() {
   const router = useRouter();
+  const { t } = useI18n();
   const startAiGame = useGameStore((state) => state.startAiGame);
   const hydratePreferences = useGameStore((state) => state.hydratePreferences);
   const [difficulty, setDifficulty] = useState<Difficulty>("medium");
@@ -62,6 +47,24 @@ export function StartScreen() {
     router.push("/");
   }
 
+  const rules = [
+    {
+      icon: EyeOff,
+      title: t("start.ruleOwnTitle"),
+      body: t("start.ruleOwnBody"),
+    },
+    {
+      icon: Radar,
+      title: t("start.ruleCheckTitle"),
+      body: t("start.ruleCheckBody"),
+    },
+    {
+      icon: Brain,
+      title: t("start.ruleMemoryTitle"),
+      body: t("start.ruleMemoryBody"),
+    },
+  ];
+
   return (
     <div className="relative min-h-screen">
       <header className="mx-auto flex h-20 w-full max-w-6xl items-center justify-between px-5">
@@ -71,15 +74,16 @@ export function StartScreen() {
             href="#how-it-works"
             className="hidden text-xs text-muted-foreground transition-colors hover:text-foreground sm:block"
           >
-            How it works
+            {t("start.howItWorks")}
           </a>
+          <LanguageSwitcher />
           <Button
             variant="outline"
             size="sm"
             onClick={() => setRoomOpen(true)}
           >
             <Users className="size-3.5" />
-            Multiplayer
+            {t("start.multiplayer")}
           </Button>
         </div>
       </header>
@@ -88,19 +92,17 @@ export function StartScreen() {
         <section className="min-w-0">
           <Badge>
             <Fingerprint className="size-3" />
-            Fog-of-war chess
+            {t("start.eyebrow")}
           </Badge>
 
           <h1 className="text-balance mt-5 font-display text-[clamp(2.6rem,6vw,4.6rem)] leading-[0.94]">
-            You can see your army.
+            {t("start.heroLine1")}
             <br />
-            <span className="text-primary">Nothing else.</span>
+            <span className="text-primary">{t("start.heroLine2")}</span>
           </h1>
 
           <p className="text-balance mt-5 max-w-xl text-[15px] leading-relaxed text-muted-foreground">
-            Your opponent&apos;s pieces are anonymous shadows. You can see where
-            they stand, never what they are — until one of them gives check.
-            Read the board, count the captures, and hunt a king you cannot name.
+            {t("start.heroDescription")}
           </p>
 
           <div className="mt-8 rounded-xl border border-border/80 bg-card/70 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] backdrop-blur-sm">
@@ -110,35 +112,49 @@ export function StartScreen() {
                   <ScanEye className="size-3.5" />
                 </span>
                 <span className="text-[10px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
-                  Play the engine
+                  {t("start.playEngine")}
                 </span>
               </div>
-              <Badge variant="muted">{DIFFICULTY_META[difficulty].label}</Badge>
+              <Badge variant="muted">
+                {t(DIFFICULTY_META[difficulty].labelKey)}
+              </Badge>
             </div>
 
             <div className="mt-3">
               <Segmented
-                ariaLabel="Difficulty"
+                ariaLabel={t("start.difficulty")}
                 size="sm"
                 value={difficulty}
                 onChange={setDifficulty}
                 options={[
-                  { value: "easy", label: "Easy", hint: "depth 1" },
-                  { value: "medium", label: "Medium", hint: "depth 2" },
-                  { value: "hard", label: "Hard", hint: "depth 3+" },
+                  {
+                    value: "easy",
+                    label: t("difficulty.easy"),
+                    hint: t("difficulty.depth1"),
+                  },
+                  {
+                    value: "medium",
+                    label: t("difficulty.medium"),
+                    hint: t("difficulty.depth2"),
+                  },
+                  {
+                    value: "hard",
+                    label: t("difficulty.hard"),
+                    hint: t("difficulty.depth3"),
+                  },
                 ]}
               />
               <p className="mt-2 px-1 text-[11px] leading-relaxed text-muted-foreground/80">
-                {DIFFICULTY_META[difficulty].blurb}
+                {t(DIFFICULTY_META[difficulty].blurbKey)}
               </p>
             </div>
 
             <div className="mt-4 flex items-center justify-between gap-3">
               <span className="text-[10px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
-                Clock
+                {t("start.clock")}
               </span>
               <span className="font-mono text-[11px] text-muted-foreground/70">
-                you are white
+                {t("start.youAreWhite")}
               </span>
             </div>
             <div className="mt-2">
@@ -148,27 +164,20 @@ export function StartScreen() {
               />
             </div>
 
-            <Button
-              size="lg"
-              className="mt-4 w-full"
-              onClick={startSolo}
-            >
+            <Button size="lg" className="mt-4 w-full" onClick={startSolo}>
               <Play className="size-4" />
-              Start a solo game
+              {t("start.startSolo")}
             </Button>
 
             <div className="mt-2 grid grid-cols-[1fr_auto] gap-2">
-              <Button
-                variant="outline"
-                onClick={() => setRoomOpen(true)}
-              >
+              <Button variant="outline" onClick={() => setRoomOpen(true)}>
                 <Users className="size-3.5" />
-                Play a friend
+                {t("start.playFriend")}
               </Button>
               <Button
                 variant="outline"
                 size="icon"
-                aria-label="Join a room with a code"
+                aria-label={t("start.joinWithCodeAria")}
                 onClick={() => setRoomOpen(true)}
               >
                 <DoorOpen className="size-4" />
@@ -176,16 +185,15 @@ export function StartScreen() {
             </div>
 
             <p className="mt-3 text-[10px] leading-relaxed text-muted-foreground/50">
-              The engine plays with full sight; you do not. Rooms are
-              six-character codes with no account required.
+              {t("start.engineFullSight")}
             </p>
           </div>
 
           <div className="mt-6 grid grid-cols-3 gap-3">
             {[
-              { value: "16", label: "pieces hidden" },
-              { value: "6", label: "character rooms" },
-              { value: "∞", label: "fog, until check" },
+              { value: "16", label: t("start.statPiecesHidden") },
+              { value: "6", label: t("start.statCharacterRooms") },
+              { value: "∞", label: t("start.statFogUntilCheck") },
             ].map((stat) => (
               <div
                 key={stat.label}
@@ -225,11 +233,11 @@ export function StartScreen() {
               <div className="flex items-center gap-2">
                 <EyeOff className="size-3.5 text-primary/80" />
                 <span className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
-                  16 enemy pieces are watching
+                  {t("start.enemyWatching")}
                 </span>
               </div>
               <span className="hidden font-mono text-[9px] uppercase tracking-[0.16em] text-primary/60 sm:block">
-                white to move
+                {t("start.whiteToMove")}
               </span>
             </div>
           </div>
@@ -242,15 +250,14 @@ export function StartScreen() {
       >
         <div className="mx-auto w-full max-w-6xl px-5 py-16">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-            <h2 className="font-display text-3xl">Three rules of the fog</h2>
+            <h2 className="font-display text-3xl">{t("start.rulesTitle")}</h2>
             <p className="max-w-sm text-xs leading-relaxed text-muted-foreground">
-              Everything else is standard chess: castling, en passant,
-              promotion, checks and mates.
+              {t("start.rulesDescription")}
             </p>
           </div>
 
           <div className="mt-8 grid gap-3 sm:grid-cols-3">
-            {RULES.map((rule) => (
+            {rules.map((rule) => (
               <article
                 key={rule.title}
                 className="group rounded-xl border border-border/70 bg-card/50 p-5 transition-colors hover:border-primary/25 hover:bg-card/80"
@@ -268,14 +275,14 @@ export function StartScreen() {
 
           <div className="mt-8 flex flex-col gap-3 rounded-xl border border-border/60 bg-white/[0.015] p-5 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <p className="font-display text-lg">Ready to lose sight of things?</p>
+              <p className="font-display text-lg">{t("start.ctaTitle")}</p>
               <p className="mt-0.5 text-[11px] text-muted-foreground">
-                One board, two views, no mercy on your memory.
+                {t("start.ctaBody")}
               </p>
             </div>
             <Button size="lg" onClick={startSolo}>
               <Play className="size-4" />
-              Play now
+              {t("start.playNow")}
             </Button>
           </div>
         </div>
@@ -283,7 +290,7 @@ export function StartScreen() {
 
       <footer className="border-t border-border/60">
         <div className="mx-auto flex w-full max-w-6xl flex-col gap-2 px-5 py-6 text-[10px] text-muted-foreground/50 sm:flex-row sm:items-center sm:justify-between">
-          <span>Blind Chess — the fog is the point.</span>
+          <span>{t("start.footerTagline")}</span>
           <span className="font-mono uppercase tracking-[0.14em]">
             Next.js · chess.js · Zustand
           </span>

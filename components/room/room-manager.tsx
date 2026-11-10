@@ -26,6 +26,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Segmented } from "@/components/ui/segmented";
 import { TimeControlPicker } from "@/components/game/time-control-picker";
+import { useI18n } from "@/components/i18n-provider";
 
 type Tab = "create" | "join" | "invite";
 
@@ -41,6 +42,7 @@ export function RoomManager({
   shareCode,
 }: RoomManagerProps) {
   const router = useRouter();
+  const { t } = useI18n();
   const [tab, setTab] = useState<Tab>(shareCode ? "invite" : "create");
   const [timeControl, setTimeControl] = useState<TimeControlKey>(
     DEFAULT_TIME_CONTROL,
@@ -64,7 +66,7 @@ export function RoomManager({
 
   function joinRoom() {
     if (!isRoomCode(joinCode)) {
-      toast.error("Enter a six-character room code");
+      toast.error(t("toast.enterRoomCode"));
       return;
     }
     onOpenChange(false);
@@ -74,24 +76,24 @@ export function RoomManager({
   async function copy(value: string, label: string) {
     const ok = await copyText(value);
     if (!ok) {
-      toast.error("Could not copy to the clipboard");
+      toast.error(t("toast.couldNotCopyClipboard"));
       return;
     }
     setCopied(true);
-    toast.success(`${label} copied`);
+    toast.success(t("toast.copied", { label }));
     window.setTimeout(() => setCopied(false), 1600);
   }
 
   async function nativeShare() {
     if (!shareCode) return;
     if (!navigator.share) {
-      void copy(shareUrl, "Invite link");
+      void copy(shareUrl, t("label.inviteLink"));
       return;
     }
     try {
       await navigator.share({
         title: "Blind Chess",
-        text: `Join my Blind Chess room. The code is ${shareCode}.`,
+        text: t("room.shareText", { code: shareCode }),
         url: shareUrl,
       });
     } catch {
@@ -103,26 +105,25 @@ export function RoomManager({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Play a friend</DialogTitle>
+          <DialogTitle>{t("room.title")}</DialogTitle>
           <DialogDescription>
-            A six-character room. No account, no download — just a shared board
-            and two very different views of it.
+            {t("room.description")}
           </DialogDescription>
         </DialogHeader>
 
         <Segmented
-          ariaLabel="Room action"
+          ariaLabel={t("room.title")}
           value={tab}
           onChange={(value) => setTab(value as Tab)}
           options={
             shareCode
               ? [
-                  { value: "invite", label: "Invite" },
-                  { value: "join", label: "Join another" },
+                  { value: "invite", label: t("room.tabInvite") },
+                  { value: "join", label: t("room.tabJoinAnother") },
                 ]
               : [
-                  { value: "create", label: "Create a room" },
-                  { value: "join", label: "Join with a code" },
+                  { value: "create", label: t("room.tabCreate") },
+                  { value: "join", label: t("room.tabJoin") },
                 ]
           }
         />
@@ -131,7 +132,7 @@ export function RoomManager({
           <div className="space-y-4">
             <div className="space-y-2">
               <span className="text-[10px] font-medium uppercase tracking-[0.16em] text-muted-foreground">
-                Clock
+                {t("room.clock")}
               </span>
               <TimeControlPicker
                 value={timeControl}
@@ -141,19 +142,16 @@ export function RoomManager({
             <div className="flex items-start gap-2.5 rounded-lg border border-border bg-white/[0.02] p-3">
               <Users className="mt-0.5 size-4 shrink-0 text-primary/80" />
               <p className="text-[11px] leading-relaxed text-muted-foreground">
-                You play White. Send the link to your friend — the board unlocks
-                the moment they arrive. The creator keeps the authoritative game
-                state.
+                {t("room.createInfo")}
               </p>
             </div>
             <Button className="w-full" size="lg" onClick={createRoom}>
               <Plus className="size-4" />
-              Create room
+              {t("room.create")}
             </Button>
             {!isPusherConfigured() ? (
               <p className="text-[10px] leading-relaxed text-muted-foreground/60">
-                Local relay active: rooms work between tabs on this browser. Add
-                Pusher keys to play across devices.
+                {t("room.localRelayActive")}
               </p>
             ) : null}
           </div>
@@ -166,7 +164,7 @@ export function RoomManager({
                 htmlFor="room-code"
                 className="text-[10px] font-medium uppercase tracking-[0.16em] text-muted-foreground"
               >
-                Room code
+                {t("room.roomCode")}
               </label>
               <Input
                 id="room-code"
@@ -185,8 +183,7 @@ export function RoomManager({
                 className="h-14 text-center font-mono text-2xl tracking-[0.4em] uppercase"
               />
               <p className="text-[11px] leading-relaxed text-muted-foreground">
-                Ask your opponent for the six characters from their invite bar.
-                You will play Black.
+                {t("room.joinInfo")}
               </p>
             </div>
             <Button
@@ -196,7 +193,7 @@ export function RoomManager({
               disabled={!isRoomCode(joinCode)}
             >
               <DoorOpen className="size-4" />
-              Join room
+              {t("room.join")}
             </Button>
           </div>
         ) : null}
@@ -205,7 +202,7 @@ export function RoomManager({
           <div className="space-y-4">
             <div className="rounded-xl border border-primary/20 bg-primary/[0.05] px-4 py-5 text-center">
               <div className="text-[10px] uppercase tracking-[0.22em] text-primary/70">
-                Room code
+                {t("room.roomCode")}
               </div>
               <div className="mt-2 font-mono text-4xl tracking-[0.32em] text-foreground">
                 {shareCode}
@@ -214,7 +211,7 @@ export function RoomManager({
 
             <div className="space-y-2">
               <span className="text-[10px] font-medium uppercase tracking-[0.16em] text-muted-foreground">
-                Share link
+                {t("room.shareLink")}
               </span>
               <div className="flex gap-2">
                 <Input
@@ -226,8 +223,8 @@ export function RoomManager({
                 <Button
                   variant="secondary"
                   size="icon"
-                  onClick={() => void copy(shareUrl, "Invite link")}
-                  aria-label="Copy invite link"
+                  onClick={() => void copy(shareUrl, t("label.inviteLink"))}
+                  aria-label={t("waiting.copyInviteAria")}
                   className={cn(
                     "shrink-0",
                     copied && "border-primary/30 text-primary",
@@ -245,22 +242,20 @@ export function RoomManager({
             <div className="grid grid-cols-2 gap-2">
               <Button
                 variant="outline"
-                onClick={() => void copy(shareCode, "Room code")}
+                onClick={() => void copy(shareCode, t("label.roomCode"))}
               >
                 <Copy className="size-3.5" />
-                Copy code
+                {t("room.copyCode")}
               </Button>
               <Button variant="outline" onClick={() => void nativeShare()}>
                 <Share2 className="size-3.5" />
-                Share
+                {t("room.share")}
               </Button>
             </div>
 
             {!isPusherConfigured() ? (
               <p className="text-[10px] leading-relaxed text-muted-foreground/60">
-                This build uses a local browser relay. Open the invite link in a
-                second tab to test the room; configure Pusher for cross-device
-                play.
+                {t("room.localRelayBuild")}
               </p>
             ) : null}
           </div>

@@ -14,6 +14,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { useI18n } from "@/components/i18n-provider";
 
 interface GameOverDialogProps {
   game: GameState;
@@ -38,6 +39,7 @@ export function GameOverDialog({
   online,
   opponentPresent,
 }: GameOverDialogProps) {
+  const { locale, t } = useI18n();
   const draw = game.winner === null;
   const won = game.winner === viewerColor;
   const Icon = draw ? Handshake : won ? Crown : Skull;
@@ -59,40 +61,49 @@ export function GameOverDialog({
             <Icon className="size-5" />
           </div>
           <DialogTitle className="text-3xl">
-            {draw ? "A draw in the fog" : won ? "You win" : "You lose"}
+            {draw
+              ? t("gameOver.draw")
+              : won
+                ? t("gameOver.youWin")
+                : t("gameOver.youLose")}
           </DialogTitle>
           <DialogDescription>
-            {endReasonText(game.endReason, game.winner)} · {game.history.length}{" "}
-            plies played.
+            {t("gameOver.summary", {
+              reason: endReasonText(game.endReason, game.winner, locale),
+              count: game.history.length,
+            })}
           </DialogDescription>
         </DialogHeader>
 
         <div className="flex flex-wrap gap-1.5">
           <Badge variant="muted">
-            {game.winner === "w"
-              ? "White"
-              : game.winner === "b"
-                ? "Black"
-                : "Neither side"}{" "}
-            closed the game
+            {t("gameOver.closedBy", {
+              color:
+                game.winner === "w"
+                  ? t("common.white")
+                  : game.winner === "b"
+                    ? t("common.black")
+                    : t("gameOver.neither"),
+            })}
           </Badge>
           {online ? (
             <Badge variant={opponentPresent ? "success" : "danger"}>
-              {opponentPresent ? "Opponent present" : "Opponent offline"}
+              {opponentPresent
+                ? t("gameOver.opponentPresent")
+                : t("gameOver.opponentOffline")}
             </Badge>
           ) : null}
         </div>
 
         <p className="rounded-lg border border-border/60 bg-black/20 px-3 py-2.5 text-[11px] leading-relaxed text-muted-foreground">
-          The fog is still down. Lift it to see the board your opponent was
-          hiding — or start again and keep your deductions to yourself.
+          {t("gameOver.fogNote")}
         </p>
 
         <DialogFooter>
           {!revealed ? (
             <Button variant="outline" onClick={onReveal}>
               <EyeOff className="size-4" />
-              Lift the fog
+              {t("status.liftFog")}
             </Button>
           ) : null}
           <Button
@@ -100,12 +111,12 @@ export function GameOverDialog({
             disabled={online && !opponentPresent}
             title={
               online && !opponentPresent
-                ? "Your opponent is offline"
+                ? t("gameOver.opponentOfflineTitle")
                 : undefined
             }
           >
             <RotateCcw className="size-4" />
-            {online ? "Request rematch" : "Rematch"}
+            {online ? t("gameOver.requestRematch") : t("gameOver.rematch")}
           </Button>
         </DialogFooter>
       </DialogContent>

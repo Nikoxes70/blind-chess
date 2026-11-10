@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/dialog";
 import { Segmented } from "@/components/ui/segmented";
 import { TimeControlPicker } from "./time-control-picker";
+import { useI18n } from "@/components/i18n-provider";
 
 interface NewGameDialogProps {
   open: boolean;
@@ -26,6 +27,7 @@ interface NewGameDialogProps {
 
 export function NewGameDialog({ open, onOpenChange }: NewGameDialogProps) {
   const router = useRouter();
+  const { t } = useI18n();
   const startAiGame = useGameStore((state) => state.startAiGame);
   const currentMode = useGameStore((state) => state.mode);
   const currentDifficulty = useGameStore((state) => state.difficulty);
@@ -58,24 +60,24 @@ export function NewGameDialog({ open, onOpenChange }: NewGameDialogProps) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>New game</DialogTitle>
+          <DialogTitle>{t("newGame.title")}</DialogTitle>
           <DialogDescription>
-            Set the table. The fog returns either way.
+            {t("newGame.description")}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-5">
           <div className="space-y-2">
             <span className="text-[10px] font-medium uppercase tracking-[0.16em] text-muted-foreground">
-              Opponent
+              {t("newGame.opponent")}
             </span>
             <Segmented
-              ariaLabel="Game mode"
+              ariaLabel={t("newGame.opponent")}
               value={mode}
               onChange={setMode}
               options={[
-                { value: "ai", label: "vs Computer" },
-                { value: "online", label: "vs Friend" },
+                { value: "ai", label: t("newGame.vsComputer") },
+                { value: "online", label: t("newGame.vsFriend") },
               ]}
             />
           </div>
@@ -83,37 +85,48 @@ export function NewGameDialog({ open, onOpenChange }: NewGameDialogProps) {
           {mode === "ai" ? (
             <div className="space-y-2">
               <span className="text-[10px] font-medium uppercase tracking-[0.16em] text-muted-foreground">
-                Difficulty
+                {t("newGame.difficulty")}
               </span>
               <Segmented
-                ariaLabel="Difficulty"
+                ariaLabel={t("newGame.difficulty")}
                 size="sm"
                 value={difficulty}
                 onChange={setDifficulty}
                 options={[
-                  { value: "easy", label: "Easy", hint: "depth 1" },
-                  { value: "medium", label: "Medium", hint: "depth 2" },
-                  { value: "hard", label: "Hard", hint: "depth 3+" },
+                  {
+                    value: "easy",
+                    label: t("difficulty.easy"),
+                    hint: t("difficulty.depth1"),
+                  },
+                  {
+                    value: "medium",
+                    label: t("difficulty.medium"),
+                    hint: t("difficulty.depth2"),
+                  },
+                  {
+                    value: "hard",
+                    label: t("difficulty.hard"),
+                    hint: t("difficulty.depth3"),
+                  },
                 ]}
               />
               <p className="px-1 text-[11px] leading-relaxed text-muted-foreground">
-                {DIFFICULTY_META[difficulty].blurb} The engine sees the whole
-                board; local play is a memory battle.
+                {t(DIFFICULTY_META[difficulty].blurbKey)}{" "}
+                {t("newGame.aiBlurbSuffix")}
               </p>
             </div>
           ) : (
             <div className="flex items-start gap-2.5 rounded-lg border border-border bg-white/[0.02] p-3">
               <Users className="mt-0.5 size-4 text-primary/80" />
               <p className="text-[11px] leading-relaxed text-muted-foreground">
-                You will get a six-character room code and a share link. You play
-                White and the board unlocks when your friend joins.
+                {t("newGame.onlineInfo")}
               </p>
             </div>
           )}
 
           <div className="space-y-2">
             <span className="text-[10px] font-medium uppercase tracking-[0.16em] text-muted-foreground">
-              Clock
+              {t("newGame.clock")}
             </span>
             <TimeControlPicker value={timeControl} onChange={setTimeControl} />
           </div>
@@ -122,12 +135,12 @@ export function NewGameDialog({ open, onOpenChange }: NewGameDialogProps) {
             {mode === "ai" ? (
               <>
                 <Bot className="size-3.5 text-primary/80" />
-                You are White. The engine is Black.
+                {t("newGame.youWhiteEngineBlack")}
               </>
             ) : (
               <>
                 <Users className="size-3.5 text-primary/80" />
-                Creator is White. Joiner is Black.
+                {t("newGame.creatorWhiteJoinerBlack")}
               </>
             )}
           </div>
@@ -135,11 +148,11 @@ export function NewGameDialog({ open, onOpenChange }: NewGameDialogProps) {
 
         <DialogFooter>
           <Button variant="ghost" onClick={() => onOpenChange(false)}>
-            Cancel
+            {t("newGame.cancel")}
           </Button>
           <Button onClick={handleStart}>
             <Play className="size-4" />
-            {mode === "ai" ? "Start game" : "Create room"}
+            {mode === "ai" ? t("newGame.start") : t("newGame.createRoom")}
           </Button>
         </DialogFooter>
       </DialogContent>

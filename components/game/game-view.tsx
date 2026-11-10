@@ -11,6 +11,7 @@ import { useAiOpponent } from "@/hooks/use-ai-opponent";
 import { useGameFeedback } from "@/hooks/use-game-feedback";
 import { useLiveClocks } from "@/hooks/use-live-clocks";
 import { useGameStore } from "@/store/game-store";
+import { useI18n } from "@/components/i18n-provider";
 import { ChessBoard } from "@/components/board/chess-board";
 import { Button } from "@/components/ui/button";
 import {
@@ -41,6 +42,7 @@ function materialScore(pieces: CapturedPiece[]): number {
 }
 
 export function GameView() {
+  const { t } = useI18n();
   useAiOpponent();
   useGameFeedback();
   const clocks = useLiveClocks();
@@ -145,13 +147,16 @@ export function GameView() {
     !thinking &&
     opponentPresent;
 
-  const opponentName = mode === "ai" ? "The Engine" : "Hidden opponent";
+  const opponentName =
+    mode === "ai" ? t("game.engine") : t("game.hiddenOpponent");
   const opponentNote =
     mode === "ai"
-      ? `${DIFFICULTY_META[difficulty].label} · Black`
+      ? t("game.opponentNote", {
+          level: t(DIFFICULTY_META[difficulty].labelKey),
+        })
       : opponentColor === "w"
-        ? "White"
-        : "Black";
+        ? t("common.white")
+        : t("common.black");
 
   const showGameOver =
     game.status !== "active" && dismissedGameId !== game.id;
@@ -183,15 +188,15 @@ export function GameView() {
                 <Loader2 className="size-3.5 animate-spin" />
                 <span className="truncate">
                   {room.role === "host"
-                    ? "Waiting for your opponent to join"
-                    : "Opponent reconnecting — the board is paused"}
+                    ? t("game.waitingJoin")
+                    : t("game.opponentReconnecting")}
                 </span>
                 <button
                   type="button"
                   onClick={() => setRoomOpen(true)}
                   className="ml-auto shrink-0 font-mono text-[10px] uppercase tracking-[0.12em] underline-offset-4 hover:underline"
                 >
-                  Invite
+                  {t("game.invite")}
                 </button>
               </div>
             ) : null}
@@ -199,7 +204,7 @@ export function GameView() {
             {awaitingHost ? (
               <div className="flex items-center gap-2 rounded-lg border border-border bg-white/[0.025] px-3 py-2 text-[11px] text-muted-foreground">
                 <Loader2 className="size-3.5 animate-spin text-primary/80" />
-                Waiting for the host to confirm your move…
+                {t("game.awaitingHost")}
               </div>
             ) : null}
 
@@ -233,8 +238,12 @@ export function GameView() {
 
             <PlayerBar
               color={viewerColor}
-              name="You"
-              note={viewerColor === "w" ? "White" : "Black"}
+              name={t("common.you")}
+              note={
+                viewerColor === "w"
+                  ? t("game.viewerNoteWhite")
+                  : t("game.viewerNoteBlack")
+              }
               active={game.status === "active" && isViewerTurn}
               clockMs={clocks ? clocks[viewerColor] : null}
               captured={yourCaptures}
@@ -244,12 +253,9 @@ export function GameView() {
             />
 
             <p className="px-1 text-[10px] leading-relaxed text-muted-foreground/50">
-              Your pieces and any active checking attackers are drawn in full.
-              Other enemy pieces are anonymous shadows; a capture identifies
-              the taken piece in the log and captured tracker.
+              {t("game.boardFooter")}
               <span className="mt-0.5 block">
-                Gold is your last move; blue is theirs. A red ! marks a move that
-                would leave your king in check.
+                {t("game.boardFooterSecond")}
               </span>
             </p>
           </section>
@@ -314,19 +320,18 @@ export function GameView() {
       <Dialog open={resignOpen} onOpenChange={setResignOpen}>
         <DialogContent className="max-w-sm">
           <DialogHeader>
-            <DialogTitle>Resign this game?</DialogTitle>
+            <DialogTitle>{t("game.resignTitle")}</DialogTitle>
             <DialogDescription>
-              The fog lifts for nobody. Your opponent takes the win and the
-              result is final.
+              {t("game.resignDescription")}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="ghost" onClick={() => setResignOpen(false)}>
-              Keep playing
+              {t("game.keepPlaying")}
             </Button>
             <Button variant="destructive" onClick={handleResign}>
               <Flag className="size-4" />
-              Resign
+              {t("game.resign")}
             </Button>
           </DialogFooter>
         </DialogContent>

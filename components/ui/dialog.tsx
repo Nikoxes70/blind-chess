@@ -4,6 +4,7 @@ import * as React from "react";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useI18n } from "@/components/i18n-provider";
 
 const Dialog = DialogPrimitive.Root;
 const DialogTrigger = DialogPrimitive.Trigger;
@@ -28,8 +29,11 @@ DialogOverlay.displayName = DialogPrimitive.Overlay.displayName;
 const DialogContent = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
->(({ className, children, ...props }, ref) => (
-  <DialogPortal>
+>(({ className, children, ...props }, ref) => {
+  const { t } = useI18n();
+
+  return (
+    <DialogPortal>
     <DialogOverlay />
     <DialogPrimitive.Content
       ref={ref}
@@ -40,13 +44,17 @@ const DialogContent = React.forwardRef<
       {...props}
     >
       {children}
-      <DialogPrimitive.Close className="absolute right-4 top-4 rounded-md p-1.5 text-muted-foreground opacity-70 transition-colors hover:bg-white/5 hover:text-foreground focus:outline-none focus:ring-2 focus:ring-ring/50">
+      <DialogPrimitive.Close
+        aria-label={t("common.close")}
+        className="absolute right-4 top-4 rounded-md p-1.5 text-muted-foreground opacity-70 transition-colors hover:bg-white/5 hover:text-foreground focus:outline-none focus:ring-2 focus:ring-ring/50"
+      >
         <X className="size-4" />
-        <span className="sr-only">Close</span>
+        <span className="sr-only">{t("common.close")}</span>
       </DialogPrimitive.Close>
     </DialogPrimitive.Content>
   </DialogPortal>
-));
+  );
+});
 DialogContent.displayName = DialogPrimitive.Content.displayName;
 
 function DialogHeader({

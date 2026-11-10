@@ -32,6 +32,7 @@ import type {
 } from "@/lib/chess/types";
 import type { RoomClient } from "@/lib/realtime/room-client";
 import type { ConnectionStatus, RoomRole, TransportKind } from "@/lib/realtime/types";
+import type { MessageKey } from "@/lib/i18n/messages";
 
 export interface RoomSession {
   code: string;
@@ -45,6 +46,7 @@ export interface RoomSession {
 interface GameError {
   id: number;
   message: string;
+  key?: MessageKey;
 }
 
 export interface GameStore {
@@ -84,7 +86,7 @@ export interface GameStore {
   pushState: () => void;
   receiveState: (wire: WireGameState) => void;
   receivePeerMove: (input: MoveInput, actor: Color) => void;
-  rejectMove: (message: string) => void;
+  rejectMove: (message: string, key?: MessageKey) => void;
   receiveResign: (color: Color) => void;
   receiveFlag: (color: Color) => void;
 
@@ -110,13 +112,16 @@ export interface GameStore {
   applyEngineMove: (move: { from: string; to: string; promotion?: PromotionPiece }) => void;
   playFallbackAiMove: () => void;
 
-  pushError: (message: string) => void;
+  pushError: (message: string, key?: MessageKey) => void;
   clearError: (id?: number) => void;
   leaveGame: () => void;
 }
 
 let errorSequence = 0;
-let lastError = { message: "", at: 0 };
+let lastError: { message: string; key?: MessageKey; at: number } = {
+  message: "",
+  at: 0,
+};
 
 function readSoundPreference(): boolean {
   if (typeof window === "undefined") return true;
@@ -150,11 +155,17 @@ export const useGameStore = create<GameStore>()((set, get) => {
     }
   };
 
-  const pushError = (message: string) => {
+  const pushError = (message: string, key?: MessageKey) => {
     const now = Date.now();
-    if (lastError.message === message && now - lastError.at < 900) return;
-    lastError = { message, at: now };
-    set({ error: { id: ++errorSequence, message } });
+    if (
+      lastError.message === message &&
+      lastError.key === key &&
+      now - lastError.at < 900
+    ) {
+      return;
+    }
+    lastError = { message, key, at: now };
+    set({ error: { id: ++errorSequence, message, key } });
   };
 
   return {
@@ -318,6 +329,7 @@ export const useGameStore = create<GameStore>()((set, get) => {
             type: "reject",
             targetId: room.opponentId,
             message: result.message,
+            messageKey: result.messageKey,
           });
         }
         return;
@@ -325,9 +337,9 @@ export const useGameStore = create<GameStore>()((set, get) => {
       commit(result.state);
     },
 
-    rejectMove: (message) => {
+    rejectMove: (message, key) => {
       set({ awaitingHost: false });
-      pushError(message);
+      pushError(message, key);
     },
 
     receiveResign: (color) => {
@@ -360,12 +372,12 @@ export const useGameStore = create<GameStore>()((set, get) => {
       if (game.turn !== viewerColor) return;
       if (awaitingHost) return;
       if (room && !room.opponentPresent) {
-        pushError("Waiting for your opponent to join.");
+        pushError("Waiting for your opponent to join.", "errors.waitingOpponent");
         return;
       }
 
       if (selected && dangerTargets.includes(square)) {
-        pushError("That move would leave your king in check.");
+        pushError("That move would leave your king in check.", "errors.kingExposed");
         return;
       }
 
@@ -399,12 +411,12 @@ export const useGameStore = create<GameStore>()((set, get) => {
       if (game.turn !== viewerColor) return;
 
       if (room && !room.opponentPresent) {
-        pushError("Waiting for your opponent to join.");
+        pushError("Waiting for your opponent to join.", "errors.waitingOpponent");
         return;
       }
 
       if (kingSafetyTargets(game, input.from, viewerColor).includes(input.to)) {
-        pushError("That move would leave your king in check.");
+        pushError("That move would leave your king in check.", "errors.kingExposed");
         return;
       }
 
@@ -416,7 +428,7 @@ export const useGameStore = create<GameStore>()((set, get) => {
       if (room?.role === "guest") {
         const validation = attemptMove(game, input, viewerColor);
         if (!validation.ok) {
-          pushError(validation.message);
+          pushError(validation.message, validation.messageKey);
           return;
         }
         roomClient?.send({
@@ -439,7 +451,7 @@ export const useGameStore = create<GameStore>()((set, get) => {
         elapsedMs: elapsedForTurn(game, clockAnchor),
       });
       if (!result.ok) {
-        pushError(result.message);
+        pushError(result.message, result.messageKey);
         return;
       }
       commit(result.state);

@@ -1,9 +1,12 @@
+"use client";
+
 import { Crown, EyeOff, User } from "lucide-react";
 import { opposite } from "@/lib/chess/board";
 import type { Color } from "@/lib/chess/types";
 import type { CapturedPiece } from "@/lib/chess/notation";
 import { cn, formatClock } from "@/lib/utils";
 import { PieceGlyph } from "@/components/board/piece-glyph";
+import { useI18n } from "@/components/i18n-provider";
 
 interface PlayerBarProps {
   color: Color;
@@ -32,6 +35,7 @@ export function PlayerBar({
   thinking,
   online,
 }: PlayerBarProps) {
+  const { t } = useI18n();
   const capturedCount = captured.reduce((sum, piece) => sum + piece.count, 0);
 
   return (
@@ -73,7 +77,7 @@ export function PlayerBar({
           </span>
           {thinking ? (
             <span className="animate-breathe ml-auto hidden text-[10px] text-primary/80 sm:inline">
-              thinking…
+              {t("player.thinking")}
             </span>
           ) : null}
         </div>
@@ -81,7 +85,7 @@ export function PlayerBar({
         <div className="mt-0.5 flex h-4 items-center gap-0.5 overflow-hidden">
           {capturedCount === 0 ? (
             <span className="text-[10px] text-muted-foreground/45">
-              no captures yet
+              {t("player.noCapturesYet")}
             </span>
           ) : (
             <>
@@ -123,7 +127,7 @@ export function PlayerBar({
             ? "border-primary/30 bg-black/35 text-foreground"
             : "border-transparent text-muted-foreground/80",
         )}
-        aria-label={`${name} clock`}
+        aria-label={t("player.clockAria", { name })}
       >
         {clockMs === null ? (
           <span className="text-muted-foreground/60">∞</span>

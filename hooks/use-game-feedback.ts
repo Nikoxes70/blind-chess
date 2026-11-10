@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { getSoundEngine } from "@/lib/audio/sounds";
 import { useGameStore } from "@/store/game-store";
+import { useI18n } from "@/components/i18n-provider";
 
 /**
  * Plays move/capture/check cues and surfaces engine rejections as toasts.
@@ -11,6 +12,7 @@ import { useGameStore } from "@/store/game-store";
  * and captured tracker are the only places a captured piece is identified.
  */
 export function useGameFeedback() {
+  const { t } = useI18n();
   const game = useGameStore((state) => state.game);
   const soundEnabled = useGameStore((state) => state.soundEnabled);
   const error = useGameStore((state) => state.error);
@@ -58,7 +60,9 @@ export function useGameFeedback() {
   useEffect(() => {
     if (!error) return;
     getSoundEngine().play("illegal");
-    toast.error(error.message, { id: `error-${error.id}` });
+    toast.error(error.key ? t(error.key) : error.message, {
+      id: `error-${error.id}`,
+    });
     clearError(error.id);
-  }, [error, clearError]);
+  }, [error, clearError, t]);
 }

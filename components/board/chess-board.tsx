@@ -7,9 +7,10 @@ import {
   getViewerBoard,
   isLightSquare,
 } from "@/lib/chess/board";
-import { PIECE_NAMES } from "@/lib/chess/config";
+import { PIECE_NAME_KEYS } from "@/lib/chess/config";
 import type { BoardPiece, Color, Square } from "@/lib/chess/types";
 import { cn } from "@/lib/utils";
+import { useI18n } from "@/components/i18n-provider";
 import { PieceGlyph } from "./piece-glyph";
 
 interface ChessBoardProps {
@@ -76,6 +77,7 @@ export function ChessBoard({
   onSelect,
   onMove,
 }: ChessBoardProps) {
+  const { t } = useI18n();
   const boardRef = useRef<HTMLDivElement>(null);
   const pointerRef = useRef<PointerState | null>(null);
   const [drag, setDrag] = useState<DragState | null>(null);
@@ -170,7 +172,7 @@ export function ChessBoard({
       <div
         ref={boardRef}
         role="grid"
-        aria-label="Fog of war chess board"
+        aria-label={t("board.aria")}
         className="chess-board relative aspect-square w-full select-none overflow-hidden rounded-[6px]"
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
@@ -204,15 +206,18 @@ export function ChessBoard({
             const showFile = row === 7;
             const showRank = column === 0;
             const baseLabel = piece
-              ? `${piece.color === "w" ? "White" : "Black"} ${
-                  PIECE_NAMES[piece.type]
-                } on ${square}`
+              ? t(
+                  piece.color === "w"
+                    ? "board.whitePiece"
+                    : "board.blackPiece",
+                  { piece: t(PIECE_NAME_KEYS[piece.type]), square },
+                )
               : isHiddenPiece
-                ? `Hidden enemy piece on ${square}`
-                : `Empty square ${square}`;
+                ? t("board.hidden", { square })
+                : t("board.empty", { square });
             const ariaLabel = `${baseLabel}${
-              isDangerTarget ? " — moving here would expose your king" : ""
-            }${isTheirLast ? " — opponent's last move" : ""}`;
+              isDangerTarget ? t("board.danger") : ""
+            }${isTheirLast ? t("board.opponentLast") : ""}`;
 
             return (
               <div

@@ -12,6 +12,7 @@ import {
 import type { RoomSession } from "@/store/game-store";
 import { Button } from "@/components/ui/button";
 import { Panel, PanelHeader } from "@/components/ui/panel";
+import { useI18n } from "@/components/i18n-provider";
 
 interface GameControlsProps {
   room: RoomSession | null;
@@ -34,9 +35,14 @@ export function GameControls({
   onToggleSound,
   onResign,
 }: GameControlsProps) {
+  const { t } = useI18n();
+
   return (
     <Panel>
-      <PanelHeader title="Controls" icon={<Settings2 className="size-3.5" />} />
+      <PanelHeader
+        title={t("controls.title")}
+        icon={<Settings2 className="size-3.5" />}
+      />
       <div className="space-y-2 p-3">
         {room ? (
           <Button
@@ -45,7 +51,7 @@ export function GameControls({
             onClick={onInvite}
           >
             <Link2 className="size-3.5" />
-            Invite · <span className="font-mono text-primary">{room.code}</span>
+            {t("controls.invite", { code: room.code })}
           </Button>
         ) : null}
 
@@ -55,13 +61,13 @@ export function GameControls({
           onClick={onNewGame}
         >
           <PlusCircle className="size-3.5" />
-          New game
+          {t("controls.newGame")}
         </Button>
 
         <div className="grid grid-cols-2 gap-2">
           <Button variant="outline" onClick={onFlip} className="justify-start">
             <FlipVertical2 className="size-3.5" />
-            Flip board
+            {t("controls.flip")}
           </Button>
           <Button
             variant="outline"
@@ -74,7 +80,7 @@ export function GameControls({
             ) : (
               <VolumeX className="size-3.5" />
             )}
-            {soundEnabled ? "Sound on" : "Muted"}
+            {soundEnabled ? t("controls.soundOn") : t("controls.muted")}
           </Button>
         </div>
 
@@ -85,11 +91,11 @@ export function GameControls({
           disabled={!canResign}
         >
           <Flag className="size-3.5" />
-          Resign
+          {t("controls.resign")}
         </Button>
 
         <p className="px-1 pt-1 text-[10px] leading-relaxed text-muted-foreground/50">
-          Switch mode, difficulty or clock when you start a new game.
+          {t("controls.hint")}
         </p>
       </div>
     </Panel>

@@ -18,6 +18,7 @@ import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Panel } from "@/components/ui/panel";
+import { useI18n } from "@/components/i18n-provider";
 
 interface StatusCardProps {
   game: GameState;
@@ -40,6 +41,7 @@ export function StatusCard({
   onInvite,
   onReveal,
 }: StatusCardProps) {
+  const { locale, t } = useI18n();
   const isViewerTurn = game.turn === viewerColor;
   const viewerWon = game.winner === viewerColor;
   const inCheck =
@@ -58,45 +60,43 @@ export function StatusCard({
     game.status === "active";
   const controlLabel = game.clocks
     ? `${Math.round(game.clocks.initial / 60_000)} + ${Math.round(game.clocks.increment / 1_000)}`
-    : "No clock";
+    : t("time.noClock");
 
-  let title = "Your move";
-  let detail =
-    "Your pieces are drawn in full. Other enemy pieces are shadows until they give check.";
+  let title = t("status.yourMove");
+  let detail = t("status.yourMoveDetail");
 
   if (game.status === "checkmate") {
-    title = viewerWon ? "Checkmate — you win" : "Checkmate";
+    title = viewerWon ? t("status.checkmateWin") : t("status.checkmate");
     detail = viewerWon
-      ? "You found the hidden king. The fog lifts at dawn."
-      : "Your king had nowhere left to go.";
+      ? t("status.checkmateWinDetail")
+      : t("status.checkmateLoseDetail");
   } else if (game.status === "stalemate" || game.status === "draw") {
-    title = "A draw in the fog";
-    detail = endReasonText(game.endReason, game.winner);
+    title = t("status.draw");
+    detail = endReasonText(game.endReason, game.winner, locale);
   } else if (game.status === "resigned") {
-    title = viewerWon ? "You win" : "You resigned";
-    detail = endReasonText(game.endReason, game.winner);
+    title = viewerWon ? t("status.youWin") : t("status.youResigned");
+    detail = endReasonText(game.endReason, game.winner, locale);
   } else if (game.status === "timeout") {
-    title = viewerWon ? "You win on time" : "Time ran out";
-    detail = endReasonText(game.endReason, game.winner);
+    title = viewerWon ? t("status.youWinOnTime") : t("status.timeRanOut");
+    detail = endReasonText(game.endReason, game.winner, locale);
   } else if (game.status === "abandoned") {
-    title = "Game abandoned";
-    detail = "The room was closed before the game finished.";
+    title = t("status.gameAbandoned");
+    detail = t("status.roomClosed");
   } else if (waiting) {
-    title = "Waiting for a challenger";
-    detail = "Share the room code below — the board unlocks when they arrive.";
+    title = t("status.waitingChallenger");
+    detail = t("status.shareRoomDetail");
   } else if (reconnecting) {
-    title = "Opponent disconnected";
-    detail = "The room is still open. Play resumes when they reconnect.";
+    title = t("status.opponentDisconnected");
+    detail = t("status.reconnectDetail");
   } else if (thinking) {
-    title = "The engine is thinking";
-    detail = "Your last move disappeared into the fog. It is calculating.";
+    title = t("status.engineThinking");
+    detail = t("status.engineThinkingDetail");
   } else if (inCheck) {
-    title = "Check — a piece revealed";
-    detail =
-      "The attacker is visible until the check is resolved. Then it disappears again.";
+    title = t("status.checkTitle");
+    detail = t("status.checkDetail");
   } else if (!isViewerTurn) {
-    title = "Their move";
-    detail = "Watch the log, remember the shape of the board, and wait.";
+    title = t("status.theirMove");
+    detail = t("status.theirMoveDetail");
   }
 
   const tone =
@@ -114,7 +114,9 @@ export function StatusCard({
       <div className="p-4">
         <div className="flex items-center justify-between gap-3">
           <span className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
-            {game.status === "active" ? "Table status" : "Result"}
+            {game.status === "active"
+              ? t("status.tableStatus")
+              : t("status.result")}
           </span>
           <span
             className={cn(
@@ -129,7 +131,7 @@ export function StatusCard({
             ) : (
               <Sparkles className="size-3" />
             )}
-            {game.status === "active" ? "Live" : "Final"}
+            {game.status === "active" ? t("status.live") : t("status.final")}
           </span>
         </div>
 
@@ -144,8 +146,8 @@ export function StatusCard({
           <Badge variant="muted">
             <EyeOff className="size-3" />
             {game.status === "active"
-              ? `${hiddenCount} pieces in the fog`
-              : `${game.history.length} moves`}
+              ? t("status.piecesInFog", { count: hiddenCount })
+              : t("status.moves", { count: game.history.length })}
           </Badge>
           <Badge variant="muted">
             <Clock3 className="size-3" />
@@ -153,14 +155,16 @@ export function StatusCard({
           </Badge>
           <Badge variant="muted">
             <MoveRight className="size-3" />
-            {game.history.length} plies
+            {t("status.plies", { count: game.history.length })}
           </Badge>
           {room ? (
             <Badge
               variant={room.status === "connected" ? "success" : "muted"}
             >
               <Radio className="size-3" />
-              {room.transport === "pusher" ? "room relay" : "local relay"}
+              {room.transport === "pusher"
+                ? t("status.roomRelay")
+                : t("status.localRelay")}
             </Badge>
           ) : null}
         </div>
@@ -173,14 +177,14 @@ export function StatusCard({
             onClick={onInvite}
           >
             <Loader2 className="size-3.5 animate-spin" />
-            Share room {room?.code}
+            {t("status.shareRoom", { code: room?.code ?? "" })}
           </Button>
         ) : null}
 
         {reconnecting ? (
           <div className="mt-3.5 flex items-center gap-2 rounded-md border border-border bg-white/[0.025] px-2.5 py-2 text-[11px] text-muted-foreground">
             <Loader2 className="size-3.5 animate-spin text-primary/80" />
-            Waiting for them to return…
+            {t("status.waitingReturn")}
           </div>
         ) : null}
 
@@ -194,12 +198,12 @@ export function StatusCard({
                 onClick={onReveal}
               >
                 <EyeOff className="size-3.5" />
-                Lift the fog
+                {t("status.liftFog")}
               </Button>
             ) : (
               <div className="flex flex-1 items-center justify-center gap-1.5 rounded-md border border-primary/20 bg-primary/[0.06] px-2.5 py-1.5 text-[11px] text-primary/90">
                 <EyeOff className="size-3.5" />
-                Fog lifted
+                {t("status.fogLifted")}
               </div>
             )}
           </div>
@@ -208,7 +212,7 @@ export function StatusCard({
         {room?.status === "error" ? (
           <p className="mt-3 flex items-center gap-1.5 text-[11px] text-destructive">
             <Ban className="size-3.5" />
-            Relay unavailable. Check your connection.
+            {t("status.relayUnavailable")}
           </p>
         ) : null}
       </div>

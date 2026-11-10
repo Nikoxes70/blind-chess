@@ -2,6 +2,7 @@
 
 import { EyeOff } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useI18n } from "@/components/i18n-provider";
 
 interface BrandProps {
   onClick?: () => void;
@@ -10,6 +11,8 @@ interface BrandProps {
 }
 
 export function Brand({ onClick, compact, className }: BrandProps) {
+  const { t } = useI18n();
+
   return (
     <button
       type="button"
@@ -19,7 +22,7 @@ export function Brand({ onClick, compact, className }: BrandProps) {
         !onClick && "cursor-default",
         className,
       )}
-      aria-label="Blind Chess home"
+      aria-label={t("common.home")}
     >
       <span className="relative flex size-8 items-center justify-center rounded-[9px] border border-primary/25 bg-primary/[0.08] shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
         <EyeOff className="size-4 text-primary" />
@@ -31,7 +34,7 @@ export function Brand({ onClick, compact, className }: BrandProps) {
             Blind Chess
           </span>
           <span className="mt-1 text-[9px] uppercase tracking-[0.24em] text-muted-foreground/70">
-            fog of war
+            {t("brand.subtitle")}
           </span>
         </span>
       ) : null}

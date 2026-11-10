@@ -9,6 +9,7 @@ import type { ConnectionStatus } from "@/lib/realtime/types";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ChessBoard } from "@/components/board/chess-board";
+import { useI18n } from "@/components/i18n-provider";
 
 const START_FEN =
   "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
@@ -28,17 +29,17 @@ export function WaitingRoom({
   transport,
   onLeave,
 }: WaitingRoomProps) {
+  const { t } = useI18n();
   const [copied, setCopied] = useState(false);
-  const waitingFor = role === "guest" ? "host" : "opponent";
 
   async function copyInvite() {
     const ok = await copyText(roomShareUrl(code));
     if (!ok) {
-      toast.error("Could not copy the invite link");
+      toast.error(t("toast.couldNotCopyInvite"));
       return;
     }
     setCopied(true);
-    toast.success("Invite link copied");
+    toast.success(t("toast.inviteLinkCopied"));
     window.setTimeout(() => setCopied(false), 1600);
   }
 
@@ -70,12 +71,12 @@ export function WaitingRoom({
           </div>
 
           <h1 className="mt-4 font-display text-2xl">
-            Waiting for the {waitingFor}
+            {t(role === "guest" ? "waiting.forHost" : "waiting.forOpponent")}
           </h1>
           <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">
             {role === "guest"
-              ? "The host is setting the table. The board will unlock the moment the room syncs."
-              : "Share the code below. Play starts as soon as someone joins."}
+              ? t("waiting.guestDetail")
+              : t("waiting.hostDetail")}
           </p>
 
           <div className="mt-4 flex items-center justify-center gap-2">
@@ -86,7 +87,7 @@ export function WaitingRoom({
               variant="secondary"
               size="icon"
               onClick={() => void copyInvite()}
-              aria-label="Copy invite link"
+              aria-label={t("waiting.copyInviteAria")}
               className={cn(copied && "border-primary/30 text-primary")}
             >
               {copied ? (
@@ -99,22 +100,24 @@ export function WaitingRoom({
 
           <div className="mt-4 flex items-center justify-center gap-1.5 text-[10px] uppercase tracking-[0.16em] text-muted-foreground/60">
             <Users className="size-3" />
-            {role === "guest" ? "You will play Black" : "You will play White"}
+            {role === "guest"
+              ? t("waiting.youPlayBlack")
+              : t("waiting.youPlayWhite")}
             <span className="text-muted-foreground/30">·</span>
-            {transport === "pusher" ? "room relay" : "local relay"}
+            {transport === "pusher"
+              ? t("status.roomRelay")
+              : t("status.localRelay")}
           </div>
 
           {status === "error" ? (
             <p className="mt-3 text-[11px] text-destructive">
-              The relay is unreachable. Check your connection and refresh.
+              {t("waiting.relayError")}
             </p>
           ) : null}
 
           {transport === "local" ? (
             <p className="mt-3 text-[10px] leading-relaxed text-muted-foreground/50">
-              This build is using the local relay. Open the invite link in a
-              second tab to test the room, or configure Pusher for
-              cross-device play.
+              {t("waiting.localNote")}
             </p>
           ) : null}
         </div>
@@ -127,7 +130,7 @@ export function WaitingRoom({
         onClick={onLeave}
       >
         <LogOut className="size-3.5" />
-        Leave room
+        {t("waiting.leaveRoom")}
       </Button>
     </main>
   );

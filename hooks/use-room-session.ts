@@ -72,7 +72,9 @@ export function useRoomSession({ code, role, timeControl }: UseRoomSessionOption
       .catch(() => {
         if (!active) return;
         useGameStore.getState().updateRoom({ status: "error" });
-        useGameStore.getState().pushError("Could not reach the room relay.");
+        useGameStore
+          .getState()
+          .pushError("Could not reach the room relay.", "errors.relayUnreachable");
       });
 
     function handleEvent(event: RoomEvent) {
@@ -94,7 +96,9 @@ export function useRoomSession({ code, role, timeControl }: UseRoomSessionOption
           }
           break;
         case "reject":
-          if (event.targetId === playerId) state.rejectMove(event.message);
+          if (event.targetId === playerId) {
+            state.rejectMove(event.message, event.messageKey);
+          }
           break;
         case "resign":
           if (role === "host") state.receiveResign(event.color);
@@ -123,7 +127,10 @@ export function useRoomSession({ code, role, timeControl }: UseRoomSessionOption
       const state = useGameStore.getState();
       if (!state.awaitingHost) return;
       state.setAwaitingHost(false);
-      state.pushError("The host did not answer. Try your move again.");
+      state.pushError(
+        "The host did not answer. Try your move again.",
+        "errors.hostNoAnswer",
+      );
     }, 7000);
     return () => window.clearTimeout(timer);
   }, [awaitingHost]);

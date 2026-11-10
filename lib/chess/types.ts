@@ -1,3 +1,5 @@
+import type { MessageKey } from "@/lib/i18n/messages";
+
 export type Color = "w" | "b";
 
 export type Square = string;
@@ -108,7 +110,12 @@ export type MoveFailureReason =
 
 export type MoveAttempt =
   | { ok: true; state: GameState; move: MoveRecord }
-  | { ok: false; reason: MoveFailureReason; message: string };
+  | {
+      ok: false;
+      reason: MoveFailureReason;
+      message: string;
+      messageKey: MessageKey;
+    };
 
 export interface WireGameState {
   id: string;

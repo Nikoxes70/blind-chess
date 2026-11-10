@@ -14,17 +14,22 @@ import { useRoomSession } from "@/hooks/use-room-session";
 import { GameView } from "@/components/game/game-view";
 import { Button } from "@/components/ui/button";
 import { Brand } from "@/components/brand";
+import { LanguageSwitcher } from "@/components/language-switcher";
+import { useI18n } from "@/components/i18n-provider";
 
 function RoomLoading() {
+  const { t } = useI18n();
+
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="flex h-14 items-center border-b border-border/60 px-4">
+      <header className="flex h-14 items-center justify-between border-b border-border/60 px-4">
         <Brand />
+        <LanguageSwitcher />
       </header>
       <div className="flex flex-1 items-center justify-center">
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <Loader2 className="size-4 animate-spin text-primary" />
-          Opening the room…
+          {t("room.opening")}
         </div>
       </div>
     </div>
@@ -32,20 +37,22 @@ function RoomLoading() {
 }
 
 function InvalidRoom() {
+  const { t } = useI18n();
+
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="flex h-14 items-center border-b border-border/60 px-4">
+      <header className="flex h-14 items-center justify-between border-b border-border/60 px-4">
         <Brand />
+        <LanguageSwitcher />
       </header>
       <main className="flex flex-1 items-center justify-center px-4">
         <div className="w-full max-w-sm rounded-xl border border-border bg-card/70 p-6 text-center">
-          <h1 className="font-display text-2xl">That room is not a room</h1>
+          <h1 className="font-display text-2xl">{t("room.invalidTitle")}</h1>
           <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
-            Room codes are six characters. Ask your opponent for their invite
-            bar and try again.
+            {t("room.invalidDescription")}
           </p>
           <Button asChild className="mt-5 w-full">
-            <Link href="/">Back to the start</Link>
+            <Link href="/">{t("room.backToStart")}</Link>
           </Button>
         </div>
       </main>

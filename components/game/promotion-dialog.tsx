@@ -2,8 +2,9 @@
 
 import { Crown } from "lucide-react";
 import type { Color, PromotionPiece } from "@/lib/chess/types";
-import { PIECE_NAMES } from "@/lib/chess/config";
+import { PIECE_NAME_KEYS } from "@/lib/chess/config";
 import { PieceGlyph } from "@/components/board/piece-glyph";
+import { useI18n } from "@/components/i18n-provider";
 import {
   Dialog,
   DialogContent,
@@ -27,6 +28,8 @@ export function PromotionDialog({
   onSelect,
   onCancel,
 }: PromotionDialogProps) {
+  const { t } = useI18n();
+
   return (
     <Dialog
       open={open}
@@ -38,11 +41,10 @@ export function PromotionDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Crown className="size-5 text-primary" />
-            Promote your pawn
+            {t("promotion.title")}
           </DialogTitle>
           <DialogDescription>
-            A pawn reached the last rank. Choose what it becomes — the choice is
-            permanent.
+            {t("promotion.description")}
           </DialogDescription>
         </DialogHeader>
 
@@ -60,7 +62,7 @@ export function PromotionDialog({
                 className="text-[38px] transition-transform group-hover:scale-110"
               />
               <span className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground group-hover:text-foreground">
-                {PIECE_NAMES[piece]}
+                {t(PIECE_NAME_KEYS[piece])}
               </span>
             </button>
           ))}
@@ -71,7 +73,7 @@ export function PromotionDialog({
           onClick={onCancel}
           className="text-xs text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
         >
-          Cancel this move
+          {t("promotion.cancel")}
         </button>
       </DialogContent>
     </Dialog>

@@ -4,6 +4,7 @@ import type {
   TimeControl,
   TimeControlKey,
 } from "./types";
+import type { MessageKey } from "@/lib/i18n/messages";
 
 export const TIME_CONTROLS: TimeControl[] = [
   {
@@ -49,13 +50,13 @@ export function getTimeControl(key: TimeControlKey): TimeControl {
   return TIME_CONTROLS.find((tc) => tc.key === key) ?? TIME_CONTROLS[3];
 }
 
-export const PIECE_NAMES: Record<PieceSymbol, string> = {
-  p: "Pawn",
-  n: "Knight",
-  b: "Bishop",
-  r: "Rook",
-  q: "Queen",
-  k: "King",
+export const PIECE_NAME_KEYS: Record<PieceSymbol, MessageKey> = {
+  p: "piece.pawn",
+  n: "piece.knight",
+  b: "piece.bishop",
+  r: "piece.rook",
+  q: "piece.queen",
+  k: "piece.king",
 };
 
 export const PIECE_VALUES_CP: Record<PieceSymbol, number> = {
@@ -69,22 +70,22 @@ export const PIECE_VALUES_CP: Record<PieceSymbol, number> = {
 
 export const DIFFICULTY_META: Record<
   Difficulty,
-  { label: string; blurb: string; depth: string }
+  { labelKey: MessageKey; blurbKey: MessageKey; depthKey: MessageKey }
 > = {
   easy: {
-    label: "Easy",
-    blurb: "Plays fast and leaves pieces hanging.",
-    depth: "depth 1",
+    labelKey: "difficulty.easy",
+    blurbKey: "difficulty.easyBlurb",
+    depthKey: "difficulty.depth1",
   },
   medium: {
-    label: "Medium",
-    blurb: "Sees simple captures and threats.",
-    depth: "depth 2",
+    labelKey: "difficulty.medium",
+    blurbKey: "difficulty.mediumBlurb",
+    depthKey: "difficulty.depth2",
   },
   hard: {
-    label: "Hard",
-    blurb: "Searches deeper and rarely gifts material.",
-    depth: "depth 3+",
+    labelKey: "difficulty.hard",
+    blurbKey: "difficulty.hardBlurb",
+    depthKey: "difficulty.depth3",
   },
 };
 

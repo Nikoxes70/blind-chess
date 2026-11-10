@@ -8,9 +8,11 @@ import { copyText } from "@/lib/clipboard";
 import { DIFFICULTY_META } from "@/lib/chess/config";
 import { useGameStore } from "@/store/game-store";
 import { cn } from "@/lib/utils";
+import { useI18n } from "@/components/i18n-provider";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Brand } from "@/components/brand";
+import { LanguageSwitcher } from "@/components/language-switcher";
 import {
   Tooltip,
   TooltipContent,
@@ -23,6 +25,7 @@ interface GameHeaderProps {
 
 export function GameHeader({ onInvite }: GameHeaderProps) {
   const router = useRouter();
+  const { t } = useI18n();
   const mode = useGameStore((state) => state.mode);
   const difficulty = useGameStore((state) => state.difficulty);
   const room = useGameStore((state) => state.room);
@@ -41,10 +44,10 @@ export function GameHeader({ onInvite }: GameHeaderProps) {
     const copiedOk = await copyText(room.code);
     if (copiedOk) {
       setCopied(true);
-      toast.success("Room code copied");
+      toast.success(t("toast.roomCodeCopied"));
       window.setTimeout(() => setCopied(false), 1600);
     } else {
-      toast.error("Could not copy the code");
+      toast.error(t("toast.couldNotCopyCode"));
     }
   }
 
@@ -60,7 +63,7 @@ export function GameHeader({ onInvite }: GameHeaderProps) {
                 type="button"
                 onClick={handleCopyCode}
                 className="flex items-center gap-2 rounded-md border border-border bg-white/[0.02] px-2.5 py-1.5 font-mono text-[11px] tracking-[0.18em] text-foreground/90 transition-colors hover:border-primary/30 hover:bg-primary/[0.06]"
-                aria-label="Copy room code"
+                aria-label={t("game.copyRoomCode")}
               >
                 <span
                   className={cn(
@@ -82,14 +85,18 @@ export function GameHeader({ onInvite }: GameHeaderProps) {
                 className="hidden sm:inline-flex"
               >
                 <Link2 className="size-3.5" />
-                Invite
+                {t("game.invite")}
               </Button>
             </>
           ) : (
             <Badge variant="muted" className="hidden sm:inline-flex">
-              Practice · {DIFFICULTY_META[difficulty].label}
+              {t("game.practice", {
+                level: t(DIFFICULTY_META[difficulty].labelKey),
+              })}
             </Badge>
           )}
+
+          <LanguageSwitcher />
 
           <Tooltip>
             <TooltipTrigger asChild>
@@ -97,7 +104,9 @@ export function GameHeader({ onInvite }: GameHeaderProps) {
                 variant="ghost"
                 size="icon"
                 onClick={toggleSound}
-                aria-label={soundEnabled ? "Mute sounds" : "Enable sounds"}
+                aria-label={
+                  soundEnabled ? t("game.muteSounds") : t("game.enableSounds")
+                }
               >
                 {soundEnabled ? (
                   <Volume2 className="size-4" />
@@ -107,7 +116,7 @@ export function GameHeader({ onInvite }: GameHeaderProps) {
               </Button>
             </TooltipTrigger>
             <TooltipContent>
-              {soundEnabled ? "Mute sounds" : "Enable sounds"}
+              {soundEnabled ? t("game.muteSounds") : t("game.enableSounds")}
             </TooltipContent>
           </Tooltip>
 
@@ -117,13 +126,15 @@ export function GameHeader({ onInvite }: GameHeaderProps) {
                 variant="ghost"
                 size="icon"
                 onClick={handleLeave}
-                aria-label={room ? "Leave room" : "Back to start"}
+                aria-label={
+                  room ? t("game.leaveRoom") : t("game.backToStart")
+                }
               >
                 <DoorOpen className="size-4" />
               </Button>
             </TooltipTrigger>
             <TooltipContent>
-              {room ? "Leave room" : "Back to start"}
+              {room ? t("game.leaveRoom") : t("game.backToStart")}
             </TooltipContent>
           </Tooltip>
 
@@ -133,7 +144,7 @@ export function GameHeader({ onInvite }: GameHeaderProps) {
               size="icon-sm"
               onClick={onInvite}
               className="sm:hidden"
-              aria-label="Invite a friend"
+              aria-label={t("game.inviteFriend")}
             >
               <Link2 className="size-3.5" />
             </Button>

@@ -13,6 +13,8 @@ import {
   squaresBetween,
 } from "./board";
 import { getTimeControl } from "./config";
+import { translate } from "@/lib/i18n/messages";
+import type { Locale } from "@/lib/i18n/locale";
 import type {
   BoardMap,
   BoardPiece,
@@ -202,13 +204,28 @@ export function attemptMove(
   options: { elapsedMs?: number } = {},
 ): MoveAttempt {
   if (state.status !== "active") {
-    return { ok: false, reason: "game-over", message: "The game is already over." };
+    return {
+      ok: false,
+      reason: "game-over",
+      message: "The game is already over.",
+      messageKey: "errors.gameOver",
+    };
   }
   if (state.turn !== actor) {
-    return { ok: false, reason: "not-your-turn", message: "It is not your turn." };
+    return {
+      ok: false,
+      reason: "not-your-turn",
+      message: "It is not your turn.",
+      messageKey: "errors.notYourTurn",
+    };
   }
   if (input.from === input.to) {
-    return { ok: false, reason: "same-square", message: "Pick a different square." };
+    return {
+      ok: false,
+      reason: "same-square",
+      message: "Pick a different square.",
+      messageKey: "errors.sameSquare",
+    };
   }
 
   const board = parseFen(state.fen);
@@ -218,6 +235,7 @@ export function attemptMove(
       ok: false,
       reason: "empty-square",
       message: "There is no piece on that square.",
+      messageKey: "errors.emptySquare",
     };
   }
   if (piece.color !== actor) {
@@ -225,6 +243,7 @@ export function attemptMove(
       ok: false,
       reason: "not-your-piece",
       message: "That piece is not yours.",
+      messageKey: "errors.notYourPiece",
     };
   }
 
@@ -237,6 +256,7 @@ export function attemptMove(
       message: visible
         ? "A piece is in the way."
         : "Path blocked by an invisible obstacle!",
+      messageKey: visible ? "errors.pieceInWay" : "errors.invisibleObstacle",
     };
   }
 
@@ -258,12 +278,14 @@ export function attemptMove(
         ok: false,
         reason: "in-check",
         message: "You must get out of check first.",
+        messageKey: "errors.inCheck",
       };
     }
     return {
       ok: false,
       reason: "illegal",
       message: "That move isn’t allowed.",
+      messageKey: "errors.illegal",
     };
   }
 
@@ -672,25 +694,36 @@ export function isGameOver(status: GameStatus): boolean {
 export function endReasonText(
   reason: EndReason | null,
   winner: Color | null,
+  locale: Locale = "en",
 ): string {
+  const color = winner
+    ? translate(locale, winner === "w" ? "common.white" : "common.black")
+    : "";
+
   switch (reason) {
     case "checkmate":
-      return winner ? `${winner === "w" ? "White" : "Black"} wins by checkmate` : "Checkmate";
+      return winner
+        ? translate(locale, "end.checkmate", { color })
+        : translate(locale, "end.checkmatePlain");
     case "resignation":
-      return winner ? `${winner === "w" ? "White" : "Black"} wins by resignation` : "Resignation";
+      return winner
+        ? translate(locale, "end.resignation", { color })
+        : translate(locale, "end.gameOver");
     case "timeout":
-      return winner ? `${winner === "w" ? "White" : "Black"} wins on time` : "Time out";
+      return winner
+        ? translate(locale, "end.timeout", { color })
+        : translate(locale, "end.gameOver");
     case "stalemate":
-      return "Draw by stalemate";
+      return translate(locale, "end.stalemate");
     case "insufficient-material":
-      return "Draw — insufficient material";
+      return translate(locale, "end.insufficient");
     case "threefold":
-      return "Draw by threefold repetition";
+      return translate(locale, "end.threefold");
     case "fifty-move":
-      return "Draw by the fifty-move rule";
+      return translate(locale, "end.fiftyMove");
     case "opponent-left":
-      return "Game abandoned";
+      return translate(locale, "end.abandoned");
     default:
-      return "Game over";
+      return translate(locale, "end.gameOver");
   }
 }

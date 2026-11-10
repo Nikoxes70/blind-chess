@@ -3,6 +3,7 @@
 import { TIME_CONTROLS } from "@/lib/chess/config";
 import type { TimeControlKey } from "@/lib/chess/types";
 import { cn } from "@/lib/utils";
+import { useI18n } from "@/components/i18n-provider";
 
 interface TimeControlPickerProps {
   value: TimeControlKey;
@@ -15,6 +16,8 @@ export function TimeControlPicker({
   onChange,
   disabled,
 }: TimeControlPickerProps) {
+  const { t } = useI18n();
+
   return (
     <div className="grid grid-cols-5 gap-1 rounded-lg border border-border bg-[#0a100d] p-1">
       {TIME_CONTROLS.map((control) => {
@@ -32,7 +35,9 @@ export function TimeControlPicker({
                 ? "bg-primary/12 text-primary shadow-[inset_0_0_0_1px_rgba(227,195,141,0.28)]"
                 : "text-muted-foreground hover:bg-white/[0.04] hover:text-foreground/80",
             )}
-            title={control.label}
+            title={
+              control.key === "unlimited" ? t("time.noClock") : control.label
+            }
           >
             {control.short}
           </button>
